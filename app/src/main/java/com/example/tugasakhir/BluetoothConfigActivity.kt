@@ -1,6 +1,7 @@
 package com.example.tugasakhir
 
 import android.Manifest
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -86,6 +87,7 @@ class BluetoothConfigActivity : ComponentActivity() {
         var isBluetoothOn by remember { mutableStateOf(bluetoothAdapter?.isEnabled == true) }
         var isLocationEnabled by remember { mutableStateOf(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) }
         var scanning by remember { mutableStateOf(false) }
+        var selectedDevice by remember { mutableStateOf<BluetoothDevice?>(null) }
 
         val context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
@@ -117,12 +119,12 @@ class BluetoothConfigActivity : ComponentActivity() {
                         !isBluetoothOn -> {
                             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                             ActivityCompat.requestPermissions(
-                                this@BluetoothConfigActivity,
+                                context as Activity,
                                 arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
                                 REQUEST_ENABLE_BT
                             )
                             if (ActivityCompat.checkSelfPermission(
-                                    this@BluetoothConfigActivity,
+                                    context,
                                     Manifest.permission.BLUETOOTH_CONNECT
                                 ) == PackageManager.PERMISSION_GRANTED
                             ) {
@@ -149,16 +151,26 @@ class BluetoothConfigActivity : ComponentActivity() {
                         ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                                 .clickable {
-                                    connectToDevice(context, device)
+                                    // Optional: Handle device item click
                                 },
-                            headlineContent = { Text(device.name ?: "Unknown Device") }
+                            headlineContent = { Text(device.name ?: "Unknown Device") },
+                            trailingContent = {
+                                Button(onClick = {
+                                    selectedDevice = device
+                                    connectToDevice(context, device)
+                                }) {
+                                    Text("Connect")
+                                }
+                            }
                         )
                     }
                 }
             }
         }
     }
+
 
     private suspend fun scanForDevices(
         context: Context,
@@ -248,7 +260,7 @@ class BluetoothConfigActivity : ComponentActivity() {
             Log.i("BluetoothConfig", "Attempting to connect to device: ${device.address}")
         } else {
             ActivityCompat.requestPermissions(
-                this,
+                context as Activity,
                 arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION),
                 REQUEST_PERMISSION_CODE
             )
