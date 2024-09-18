@@ -6,8 +6,6 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -37,11 +35,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
+
 class BluetoothConfigActivity : ComponentActivity() {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val locationManager by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
     private val bluetoothLeScanner by lazy { bluetoothAdapter?.bluetoothLeScanner }
     private var devices by mutableStateOf<List<BluetoothDevice>>(emptyList())
+    private var deviceName by mutableStateOf("")
+    private var serviceUUID by mutableStateOf("")
+    private var showDialog by mutableStateOf(false)
+
 
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -84,20 +88,15 @@ class BluetoothConfigActivity : ComponentActivity() {
         locationManager: LocationManager,
         bluetoothLeScanner: android.bluetooth.le.BluetoothLeScanner?
     ) {
+        val context = LocalContext.current
         var isBluetoothOn by remember { mutableStateOf(bluetoothAdapter?.isEnabled == true) }
         var isLocationEnabled by remember { mutableStateOf(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) }
         var scanning by remember { mutableStateOf(false) }
-        var selectedDevice by remember { mutableStateOf<BluetoothDevice?>(null) }
-
-        val context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope()
 
         LaunchedEffect(scanning) {
             if (scanning) {
-                coroutineScope.launch {
-                    scanForDevices(context, bluetoothLeScanner)
-                    scanning = false
-                }
+                scanForDevices(context, bluetoothLeScanner)
+                scanning = false
             }
         }
 
@@ -151,16 +150,12 @@ class BluetoothConfigActivity : ComponentActivity() {
                         ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
                                 .clickable {
-                                    // Optional: Handle device item click
+                                    connectToDevice(context, device)
                                 },
                             headlineContent = { Text(device.name ?: "Unknown Device") },
                             trailingContent = {
-                                Button(onClick = {
-                                    selectedDevice = device
-                                    connectToDevice(context, device)
-                                }) {
+                                Button(onClick = { connectToDevice(context, device) }) {
                                     Text("Connect")
                                 }
                             }
@@ -169,8 +164,25 @@ class BluetoothConfigActivity : ComponentActivity() {
                 }
             }
         }
-    }
 
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Connected") },
+                text = { Text("Connected to $deviceName with UUID = $serviceUUID") },
+                confirmButton = {
+                    Button(onClick = {
+                        showDialog = false
+                        // Navigate back to MainActivity
+                        context.startActivity(Intent(context, MainActivity::class.java))
+                        (context as Activity).finish()
+                    }) {
+                        Text("Ok")
+                    }
+                }
+            )
+        }
+    }
 
     private suspend fun scanForDevices(
         context: Context,
@@ -217,43 +229,36 @@ class BluetoothConfigActivity : ComponentActivity() {
                         gatt?.discoverServices()
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         Log.i("BluetoothConfig", "Disconnected from GATT server.")
+                        gatt?.close() // Ensure GATT is closed when disconnected
                     }
                 }
 
                 override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
                     super.onServicesDiscovered(gatt, status)
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        Log.i("BluetoothConfig", "Services discovered.")
-                        gatt?.services?.forEach { service ->
-                            Log.i("BluetoothConfig", "Service UUID: ${service.uuid}")
-                            service.characteristics.forEach { characteristic ->
-                                Log.i("BluetoothConfig", "Characteristic UUID: ${characteristic.uuid}")
+                        gatt?.services?.firstOrNull()?.let { service ->
+                            val uuid = service.uuid.toString()
+                            // Update the state to show the dialog
+                            if (ActivityCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.BLUETOOTH_CONNECT
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                return
                             }
+                            deviceName = device.name ?: "Unknown Device"
+                            serviceUUID = uuid
+                            showDialog = true
                         }
                     } else {
                         Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
-                    }
-                }
-
-                override fun onCharacteristicRead(
-                    gatt: BluetoothGatt?,
-                    characteristic: BluetoothGattCharacteristic?,
-                    status: Int
-                ) {
-                    super.onCharacteristicRead(gatt, characteristic, status)
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        Log.i("BluetoothConfig", "Characteristic read: ${characteristic?.value?.contentToString()}")
-                    }
-                }
-
-                override fun onCharacteristicWrite(
-                    gatt: BluetoothGatt?,
-                    characteristic: BluetoothGattCharacteristic?,
-                    status: Int
-                ) {
-                    super.onCharacteristicWrite(gatt, characteristic, status)
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        Log.i("BluetoothConfig", "Characteristic written.")
                     }
                 }
             })
