@@ -207,7 +207,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                 Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            val bluetoothGatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
+            val bluetoothGatt = device.connectGatt(context, true, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
                     super.onConnectionStateChange(gatt, status, newState)
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
