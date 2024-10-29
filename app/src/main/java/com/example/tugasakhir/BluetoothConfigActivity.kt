@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -48,6 +49,7 @@ import kotlin.getValue
 import kotlin.lazy
 import kotlin.let
 import java.util.Locale
+private var isConnected by mutableStateOf(false) // Track connection status
 
 
 
@@ -63,6 +65,9 @@ class BluetoothConfigActivity : ComponentActivity() {
     private val TAG = "BluetoothConfigActivity" // Ganti dengan nama kelas Anda
     private var discoverServicesRunnable: Runnable? = null // Deklarasi variabel
     private val bleHandler = Handler() // Inisialisasi handler
+    private var bluetoothGatt: BluetoothGatt? = null // Declare the BluetoothGatt variable here
+    private val GATT_INTERNAL_ERROR = 129
+
 
 
 
@@ -100,6 +105,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                 BluetoothConfigScreen(bluetoothAdapter, locationManager, bluetoothLeScanner)
             }
         }
+
     }
 
     private fun checkPermissions(context: Context) {
@@ -178,32 +184,40 @@ class BluetoothConfigActivity : ComponentActivity() {
                     }
                 }) {
                     Text(
-                        if (scanning) "Scanning Devices..." else
-                            if (isBluetoothOn) "Start Scanning" else "Turn On Bluetooth"
+                        if (scanning && !isConnected) "Scanning Devices..." else
+                            if (isBluetoothOn && !isConnected) "Start Scanning"
+                            else if (isConnected) "Connected"
+                            else "Turn On Bluetooth"
+
                     )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                LazyColumn {
-                    items(devices) { device ->
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    connectToDevice(context, device)
-                                },
-                            headlineContent = { Text(device.name ?: "Unknown Device") },
-                            trailingContent = {
-                                Button(onClick = { connectToDevice(context, device) }) {
-                                    Text("Connect")
+                if (!isConnected) {
+                    LazyColumn {
+                        items(devices) { device ->
+                            ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        connectToDevice(context, device)
+                                    },
+                                headlineContent = { Text(device.name ?: "Unknown Device") },
+                                trailingContent = {
+                                    Button(onClick = { connectToDevice(context, device) }) {
+                                        Text("Connect")
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
+                } else {
+                    Text("Connected to $deviceName")
                 }
             }
         }
+
 
         if (showDialog) {
             AlertDialog(
@@ -298,19 +312,69 @@ class BluetoothConfigActivity : ComponentActivity() {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
                             //We successfully connected, proceed with service discovery
                             Log.i("BluetoothConfig", "Connected to GATT server.")
+                            isConnected = true // Update connection status
                             if (ActivityCompat.checkSelfPermission(
                                     context,
                                     Manifest.permission.BLUETOOTH_CONNECT
                                 ) != PackageManager.PERMISSION_GRANTED
                             )
 
-                            gatt?.discoverServices()
+                            //gatt?.discoverServices()
+                            {
+                                val bondState = device.bondState
+                                // Take action depending on the bond state
+                                when (bondState) {
+                                    BluetoothDevice.BOND_NONE, BluetoothDevice.BOND_BONDED -> {
+                                        // Connected to device, now proceed to discover its services but delay a bit if needed
+                                        val delayWhenBonded =
+                                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) 1000 else 0
+                                        val delay =
+                                            if (bondState == BluetoothDevice.BOND_BONDED) delayWhenBonded else 0
+
+                                        Log.d(TAG, "Bond State: $bondState")
+                                        Log.d(TAG, "Attempting to post Runnable for service discovery")
+
+                                        discoverServicesRunnable = Runnable {
+                                            Log.d(
+                                                TAG,
+                                                String.format(
+                                                    Locale.ENGLISH,
+                                                    "discovering services of '%s' with delay of %d ms",
+                                                    device.name,
+                                                    delay
+                                                )
+                                            )
+                                            // Memanggil discoverServices dengan pemeriksaan null
+                                            val result = gatt?.discoverServices() ?: run {
+                                                Log.e(TAG, "gatt is null, cannot discover services")
+                                                return@Runnable // Menghentikan eksekusi Runnable
+                                            }
+
+                                            if (!result) {
+                                                Log.e(TAG, "discoverServices failed to start")
+                                            }
+                                            discoverServicesRunnable = null
+                                        }
+                                        // Menggunakan let untuk memastikan discoverServicesRunnable tidak null
+                                        discoverServicesRunnable?.let { runnable ->
+                                            bleHandler.postDelayed(runnable, delay.toLong())
+                                        }
+                                    }
+
+                                    BluetoothDevice.BOND_BONDING -> {
+                                        // Bonding process in progress, let it complete
+                                        Log.i(TAG, "waiting for bonding to complete")
+                                    }
+                                }
+                            }
+
 
                             showConnectionSucceedDialog(context)
                         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                             //We successufully disconnected on our own request
                             Log.i("BluetoothConfig", "Disconnected from GATT server.")
                             gatt?.close()
+                            isConnected = false // Update connection status
                             showConnectionFailedDialog(context)
                         } else {
                             //Connecting or diconnecting, ignore
@@ -321,34 +385,26 @@ class BluetoothConfigActivity : ComponentActivity() {
                     }
                 }
 
-                    /*
-                    when (newState) {
-                        BluetoothProfile.STATE_CONNECTED -> {
-                            Log.i("BluetoothConfig", "Connected to GATT server.")
-                            if (ActivityCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.BLUETOOTH_CONNECT
-                                ) != PackageManager.PERMISSION_GRANTED
-                            ) {
-                                // TODO: Consider calling
-                                //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
-                                return
-                            }
-                            gatt?.discoverServices()
+                private fun disconnect() {
+                    bluetoothGatt?.let { gatt ->
+                        if (ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.BLUETOOTH_CONNECT
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return
                         }
-                        BluetoothProfile.STATE_DISCONNECTED -> {
-                            Log.i("BluetoothConfig", "Disconnected from GATT server.")
-                            gatt?.close()
-                            // Show failure notification
-                            showConnectionFailedDialog(context)
-                        }}
+                        gatt.disconnect() // Step 1: Disconnect
+                        // The callback onConnectionStateChange will be triggered, and we handle closing there
                     }
-                }*/
+                }
 
                 // Define function to show failure dialog
                 private fun showConnectionFailedDialog(context: Context) {
@@ -363,6 +419,13 @@ class BluetoothConfigActivity : ComponentActivity() {
                 override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
                     super.onServicesDiscovered(gatt, status)
                     Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
+
+                    // Check if the service discovery succeeded. If not disconnect
+                    if (status == GATT_INTERNAL_ERROR) {
+                        Log.e(TAG, "Service discovery failed");
+                        disconnect();
+                        return;
+                    }
 
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         gatt?.services?.firstOrNull()?.let { service ->
@@ -386,11 +449,14 @@ class BluetoothConfigActivity : ComponentActivity() {
                             deviceName = device.name ?: "Unknown Device"
                             serviceUUID = uuid
                             showDialog = true
+
                         }
                     } else {
                         Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
                     }
                 }
+
+
             }, TRANSPORT_LE)
             Log.i("BluetoothConfig", "Attempting to connect to device: ${device.address}")
 
