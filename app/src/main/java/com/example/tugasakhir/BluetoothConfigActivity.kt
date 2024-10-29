@@ -4,16 +4,23 @@ import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.ParcelUuid
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,8 +39,15 @@ import androidx.core.content.ContextCompat
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
+import kotlin.Int
+import kotlin.OptIn
+import kotlin.arrayOf
+import kotlin.getValue
+import kotlin.lazy
+import kotlin.let
+import java.util.Locale
 
 
 
@@ -45,6 +59,12 @@ class BluetoothConfigActivity : ComponentActivity() {
     private var deviceName by mutableStateOf("")
     private var serviceUUID by mutableStateOf("")
     private var showDialog by mutableStateOf(false)
+    private var showDialogFail by mutableStateOf(false)
+    private val TAG = "BluetoothConfigActivity" // Ganti dengan nama kelas Anda
+    private var discoverServicesRunnable: Runnable? = null // Deklarasi variabel
+    private val bleHandler = Handler() // Inisialisasi handler
+
+
 
 
     private val scanCallback = object : ScanCallback() {
@@ -74,12 +94,32 @@ class BluetoothConfigActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        checkPermissions(this)
         setContent {
             TugasAkhirTheme {
                 BluetoothConfigScreen(bluetoothAdapter, locationManager, bluetoothLeScanner)
             }
         }
     }
+
+    private fun checkPermissions(context: Context) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ),
+                REQUEST_PERMISSION_CODE
+            )
+        }
+    }
+
+
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -182,6 +222,18 @@ class BluetoothConfigActivity : ComponentActivity() {
                 }
             )
         }
+        if (showDialogFail) {
+            AlertDialog(
+                onDismissRequest = { showDialogFail = false },
+                title = { Text("Connection Failed") },
+                text = { Text("Failed to connect to $deviceName. Please try again.") },
+                confirmButton = {
+                    Button(onClick = { showDialogFail = false }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
     }
 
     private suspend fun scanForDevices(
@@ -194,9 +246,40 @@ class BluetoothConfigActivity : ComponentActivity() {
                     Manifest.permission.BLUETOOTH_SCAN
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                bluetoothLeScanner?.startScan(scanCallback)
+                // UUID yang ingin Anda filter
+                val targetUUID =
+                    UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b") // Ganti dengan UUID yang Anda inginkan
+
+                // Membuat filter berdasarkan UUID yang ditargetkan
+                val scanFilter = ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid(targetUUID))
+                    .build()
+
+                // Membuat pengaturan scan (ScanSettings)
+                val scanSettings = ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build()
+
+                withContext(Dispatchers.IO) {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.BLUETOOTH_SCAN
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        // Memulai scan dengan filter dan pengaturan yang telah ditentukan
+                        bluetoothLeScanner?.startScan(
+                            listOf(scanFilter),
+                            scanSettings,
+                            scanCallback
+                        )
+                        delay(10000) // Menentukan durasi pemindaian jika diperlukan
+                        bluetoothLeScanner?.stopScan(scanCallback)
+                    }
+
+                    /* bluetoothLeScanner?.startScan(scanCallback)
                 delay(10000) // Adjust scan duration if necessary
-                bluetoothLeScanner?.stopScan(scanCallback)
+                bluetoothLeScanner?.stopScan(scanCallback) */
+                }
             }
         }
     }
@@ -207,37 +290,84 @@ class BluetoothConfigActivity : ComponentActivity() {
                 Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            val bluetoothGatt = device.connectGatt(context, true, object : BluetoothGattCallback() {
+            val bluetoothGatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
                     super.onConnectionStateChange(gatt, status, newState)
-                    if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        Log.i("BluetoothConfig", "Connected to GATT server.")
-                        if (ActivityCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.BLUETOOTH_CONNECT
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            // TODO: Consider calling
-                            //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
-                            return
+                    Log.i("BluetoothConfig", "Connection state changed: $newState, status: $status")
+                    if (status == GATT_SUCCESS) {
+                        if (newState == BluetoothProfile.STATE_CONNECTED) {
+                            //We successfully connected, proceed with service discovery
+                            Log.i("BluetoothConfig", "Connected to GATT server.")
+                            if (ActivityCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.BLUETOOTH_CONNECT
+                                ) != PackageManager.PERMISSION_GRANTED
+                            )
+
+                            gatt?.discoverServices()
+
+                            showConnectionSucceedDialog(context)
+                        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                            //We successufully disconnected on our own request
+                            Log.i("BluetoothConfig", "Disconnected from GATT server.")
+                            gatt?.close()
+                            showConnectionFailedDialog(context)
+                        } else {
+                            //Connecting or diconnecting, ignore
                         }
-                        gatt?.discoverServices()
-                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        Log.i("BluetoothConfig", "Disconnected from GATT server.")
-                        gatt?.close() // Ensure GATT is closed when disconnected
+                    } else {
+                        gatt?.close()
+                        showConnectionFailedDialog(context)
                     }
                 }
 
+                    /*
+                    when (newState) {
+                        BluetoothProfile.STATE_CONNECTED -> {
+                            Log.i("BluetoothConfig", "Connected to GATT server.")
+                            if (ActivityCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.BLUETOOTH_CONNECT
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                return
+                            }
+                            gatt?.discoverServices()
+                        }
+                        BluetoothProfile.STATE_DISCONNECTED -> {
+                            Log.i("BluetoothConfig", "Disconnected from GATT server.")
+                            gatt?.close()
+                            // Show failure notification
+                            showConnectionFailedDialog(context)
+                        }}
+                    }
+                }*/
+
+                // Define function to show failure dialog
+                private fun showConnectionFailedDialog(context: Context) {
+                    showDialogFail = true // Show a Compose AlertDialog to inform the user
+                }
+
+                private fun showConnectionSucceedDialog(context: Context) {
+                    showDialog = true // Show a Compose AlertDialog to inform the user
+                }
+
+
                 override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
                     super.onServicesDiscovered(gatt, status)
+                    Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
+
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         gatt?.services?.firstOrNull()?.let { service ->
                             val uuid = service.uuid.toString()
+                            Log.i("BluetoothConfig", "Service UUID discovered: ${service.uuid}")
                             // Update the state to show the dialog
                             if (ActivityCompat.checkSelfPermission(
                                     context,
@@ -261,8 +391,9 @@ class BluetoothConfigActivity : ComponentActivity() {
                         Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
                     }
                 }
-            })
+            }, TRANSPORT_LE)
             Log.i("BluetoothConfig", "Attempting to connect to device: ${device.address}")
+
         } else {
             ActivityCompat.requestPermissions(
                 context as Activity,
