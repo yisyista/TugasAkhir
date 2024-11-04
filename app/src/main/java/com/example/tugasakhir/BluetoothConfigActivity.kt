@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.tugasakhir
 
 import android.Manifest
@@ -9,6 +11,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -25,6 +28,7 @@ import android.os.ParcelUuid
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -49,9 +53,10 @@ import kotlin.getValue
 import kotlin.lazy
 import kotlin.let
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
 private var isConnected by mutableStateOf(false) // Track connection status
-
-
 
 class BluetoothConfigActivity : ComponentActivity() {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
@@ -60,6 +65,7 @@ class BluetoothConfigActivity : ComponentActivity() {
     private var devices by mutableStateOf<List<BluetoothDevice>>(emptyList())
     private var deviceName by mutableStateOf("")
     private var serviceUUID by mutableStateOf("")
+    private var characteristicUUID by mutableStateOf("")
     private var showDialog by mutableStateOf(false)
     private var showDialogFail by mutableStateOf(false)
     private val TAG = "BluetoothConfigActivity" // Ganti dengan nama kelas Anda
@@ -67,9 +73,9 @@ class BluetoothConfigActivity : ComponentActivity() {
     private val bleHandler = Handler() // Inisialisasi handler
     private var bluetoothGatt: BluetoothGatt? = null // Declare the BluetoothGatt variable here
     private val GATT_INTERNAL_ERROR = 129
-
-
-
+    private val hrvViewModel: HrvViewModel by viewModels()
+    val CLIENT_CHARACTERISTIC_CONFIG_UUID = "00002902-0000-1000-8000-00805f9b34fb"
+    private val DEVICE_ADDRESS = "3C:71:BF:F1:4A:F6"
 
 
     private val scanCallback = object : ScanCallback() {
@@ -123,9 +129,6 @@ class BluetoothConfigActivity : ComponentActivity() {
             )
         }
     }
-
-
-
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -214,10 +217,10 @@ class BluetoothConfigActivity : ComponentActivity() {
                     }
                 } else {
                     Text("Connected to $deviceName")
+
                 }
             }
         }
-
 
         if (showDialog) {
             AlertDialog(
@@ -228,8 +231,8 @@ class BluetoothConfigActivity : ComponentActivity() {
                     Button(onClick = {
                         showDialog = false
                         // Navigate back to MainActivity
-                        context.startActivity(Intent(context, MainActivity::class.java))
-                        (context as Activity).finish()
+                        //context.startActivity(Intent(context, MainActivity::class.java))
+                        //(context as Activity).finish()
                     }) {
                         Text("Ok")
                     }
@@ -262,7 +265,7 @@ class BluetoothConfigActivity : ComponentActivity() {
             ) {
                 // UUID yang ingin Anda filter
                 val targetUUID =
-                    UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b") // Ganti dengan UUID yang Anda inginkan
+                    UUID.fromString("00001801-0000-1000-8000-00805f9b34fb") // Ganti dengan UUID yang Anda inginkan
 
                 // Membuat filter berdasarkan UUID yang ditargetkan
                 val scanFilter = ScanFilter.Builder()
@@ -304,6 +307,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                 Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
         ) {
+            
             val bluetoothGatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
                     super.onConnectionStateChange(gatt, status, newState)
@@ -312,7 +316,6 @@ class BluetoothConfigActivity : ComponentActivity() {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
                             //We successfully connected, proceed with service discovery
                             Log.i("BluetoothConfig", "Connected to GATT server.")
-                            isConnected = true // Update connection status
                             bluetoothGatt = gatt
                             if (ActivityCompat.checkSelfPermission(
                                     context,
@@ -320,7 +323,6 @@ class BluetoothConfigActivity : ComponentActivity() {
                                 ) != PackageManager.PERMISSION_GRANTED
                             )
 
-                            //gatt?.discoverServices()
                             {
                                 val bondState = device.bondState
                                 // Take action depending on the bond state
@@ -369,9 +371,11 @@ class BluetoothConfigActivity : ComponentActivity() {
                                 }
                             }
 
-
+                            //isConnected = true // Update connection status
+                            Log.d("BluetoothConfig", "Before discovering services")
                             gatt?.discoverServices()
-                            showConnectionSucceedDialog(context)
+
+
                         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                             //We successufully disconnected on our own request
                             Log.i("BluetoothConfig", "Disconnected from GATT server.")
@@ -383,7 +387,8 @@ class BluetoothConfigActivity : ComponentActivity() {
                         }
                     } else {
                         gatt?.close()
-                        //showConnectionFailedDialog(context)
+                        isConnected = false // Update connection status
+                        showConnectionFailedDialog(context)
                     }
                 }
 
@@ -396,11 +401,6 @@ class BluetoothConfigActivity : ComponentActivity() {
                         ) {
                             // TODO: Consider calling
                             //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
                             return
                         }
                         gatt.disconnect() // Step 1: Disconnect
@@ -418,21 +418,44 @@ class BluetoothConfigActivity : ComponentActivity() {
                 }
 
 
+                //@Deprecated("Deprecated in Java")
                 override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
                     super.onServicesDiscovered(gatt, status)
                     Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
 
                     // Check if the service discovery succeeded. If not disconnect
                     if (status == GATT_INTERNAL_ERROR) {
-                        Log.e(TAG, "Service discovery failed");
-                        disconnect();
-                        return;
+                        Log.e(TAG, "Service discovery failed")
+                        disconnect()
+                        return
                     }
 
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         gatt?.services?.firstOrNull()?.let { service ->
-                            val uuid = service.uuid.toString()
-                            Log.i("BluetoothConfig", "Service UUID discovered: ${service.uuid}")
+                            //val uuid = service.uuid.toString()
+                            // Asumsi Anda sudah mendapatkan service dari gatt
+                            val serviceUUIDs = service.uuid.toString()
+                            Log.i("BluetoothConfig", "Service UUID discovered: $serviceUUIDs") // Log UUID service
+
+                            // Mendapatkan daftar characteristics dari service
+                            val characteristics = service.characteristics
+
+                            // Cek jika characteristics tidak kosong
+                            if (characteristics.isNotEmpty()) {
+                                // Iterasi melalui semua characteristics untuk mendapatkan UUID
+                                for (characteristic in characteristics) {
+                                    val characteristicUUIDLocal = characteristic.uuid.toString()
+                                    Log.d("BluetoothConfig", "Characteristic UUID: $characteristicUUIDLocal") // Log setiap characteristic UUID
+
+                                    // Simpan atau gunakan characteristicUUID jika perlu
+                                    // Misalnya, menyimpannya ke dalam variabel untuk digunakan nanti
+                                    characteristicUUID = characteristicUUIDLocal // Pastikan Anda memiliki properti ini
+                                }
+                            } else {
+                                Log.e("BluetoothConfig", "No characteristics found for service: $serviceUUID")
+
+                            }
+
                             // Update the state to show the dialog
                             if (ActivityCompat.checkSelfPermission(
                                     context,
@@ -441,22 +464,48 @@ class BluetoothConfigActivity : ComponentActivity() {
                             ) {
                                 // TODO: Consider calling
                                 //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
                                 return
                             }
-                            deviceName = device.name ?: "Unknown Device"
-                            serviceUUID = uuid
-                            showDialog = true
-                            showConnectionSucceedDialog(context)
 
+                            deviceName = device.name ?: "Unknown Device"
+                            serviceUUID = serviceUUIDs
+
+                            val characteristic = getYourCharacteristic(gatt, serviceUUID, characteristicUUID) // Dapatkan characteristic yang diinginkan
+                            Log.d("BluetoothConfig", "Characteristic UUID: ${characteristic.uuid}") // Debug: Log UUID characteristic
+
+                            // Mengatur notifikasi untuk characteristic
+                            val notificationSet = gatt.setCharacteristicNotification(characteristic, true)
+                            Log.d("BluetoothConfig", "Notification set: $notificationSet") // Debug: Log status pengaturan notifikasi
+
+                            // Dapatkan descriptor untuk mengatur notifikasi
+                            val descriptor = characteristic.getDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG_UUID))
+                            if (descriptor != null) {
+                                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                                val descriptorWrite = gatt.writeDescriptor(descriptor)
+                                Log.d("BluetoothConfig", "Descriptor write initiated: $descriptorWrite") // Debug: Log status penulisan descriptor
+                            } else {
+                                Log.e("BluetoothConfig", "Descriptor not found for characteristic: ${characteristic.uuid}") // Debug: Log jika descriptor tidak ditemukan
+                            }
+
+                            isConnected = true
+                            showConnectionSucceedDialog(context)
                         }
                     } else {
                         Log.w("BluetoothConfig", "onServicesDiscovered received: $status")
                     }
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+                    // Get the byte array from the characteristic
+                    val data = characteristic.value // Get the byte array
+
+                    // Convert bytes to a String
+                    val hrvValue = String(data, Charsets.UTF_8) // Convert byte array to String
+                    Log.d("ReceivedData", "Data received: $hrvValue")
+
+                    // Call the method to update the ViewModel with the new HRV value
+                    hrvViewModel.updateHrvValue(hrvValue) // Ensure you're calling the correct method
                 }
 
 
@@ -471,6 +520,41 @@ class BluetoothConfigActivity : ComponentActivity() {
             )
         }
     }
+
+    // Call this method whenever you receive new data from ESP32
+    private fun getYourCharacteristic(gatt: BluetoothGatt, serviceUUID: String, characteristicUUID: String): BluetoothGattCharacteristic {
+        //Mendapatkan UUID dari service yang diinginkan
+        val characteristicUUID2 = UUID.fromString(characteristicUUID) // Ganti dengan UUID characteristic yang sebenarnya
+        val serviceUUID2 = UUID.fromString(serviceUUID) // Pastikan serviceUUID valid
+
+
+        // Debug: Log service UUID dan characteristic UUID
+        Log.d("BluetoothConfig", "Service UUID: $serviceUUID2") // Log UUID service
+        Log.d("BluetoothConfig", "Characteristic UUID: $characteristicUUID2") // Log UUID characteristic
+
+        // Mendapatkan service dari gatt
+        val service = gatt.getService(serviceUUID2)
+        if (service == null) {
+            Log.e("BluetoothConfig", "Service not found: $serviceUUID2") // Log jika service tidak ditemukan
+            throw IllegalArgumentException("Service not found")
+        }
+
+        // Mendapatkan characteristic dari service
+        val characteristic = service.getCharacteristic(characteristicUUID2)
+        if (characteristic == null) {
+            Log.e("BluetoothConfig", "Characteristic not found: $characteristicUUID2") // Log jika characteristic tidak ditemukan
+            throw IllegalArgumentException("Characteristic not found")
+        }
+
+        // Debug: Log jika characteristic berhasil ditemukan
+        Log.d("BluetoothConfig", "Characteristic found: $characteristicUUID2") // Log jika characteristic ditemukan
+
+        return characteristic
+    }
+
+
+
+
 
     companion object {
         private const val REQUEST_ENABLE_BT = 1

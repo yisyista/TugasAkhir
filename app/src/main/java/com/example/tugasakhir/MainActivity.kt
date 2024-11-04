@@ -29,18 +29,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
+import androidx.activity.viewModels
+import androidx.compose.runtime.livedata.observeAsState
+
 
 class MainActivity : ComponentActivity() {
+    private val hrvViewModel: HrvViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             TugasAkhirTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    MainScreen(hrvViewModel)
                 }
             }
         }
@@ -49,8 +53,8 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
-    var hrvValue by remember { mutableStateOf("HRV: Waiting...") }
+fun MainScreen(hrvViewModel: HrvViewModel) {
+    val hrvValue by hrvViewModel.hrvValue.observeAsState("HRV: Waiting...") // Observe LiveData
 
     Scaffold(
         topBar = {
@@ -81,10 +85,14 @@ fun MainScreen() {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
+    val mockHrvViewModel = HrvViewModel() // Create a mock instance for the preview
+    mockHrvViewModel.updateHrvValue("HRV: 50") // Set a default value for preview
     TugasAkhirTheme {
-        MainScreen()
+        MainScreen(mockHrvViewModel) // Pass the mock ViewModel
     }
 }
+
