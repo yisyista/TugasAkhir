@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -265,7 +266,7 @@ class BluetoothConfigActivity : ComponentActivity() {
             ) {
                 // UUID yang ingin Anda filter
                 val targetUUID =
-                    UUID.fromString("00001801-0000-1000-8000-00805f9b34fb") // Ganti dengan UUID yang Anda inginkan
+                    UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b") // Ganti dengan UUID yang Anda inginkan
 
                 // Membuat filter berdasarkan UUID yang ditargetkan
                 val scanFilter = ScanFilter.Builder()
@@ -307,8 +308,13 @@ class BluetoothConfigActivity : ComponentActivity() {
                 Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            
-            val bluetoothGatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
+            // Mendapatkan instance BluetoothAdapter
+            val bluetoothAdapter: BluetoothAdapter? = (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
+
+            // Mendapatkan BluetoothDevice dari alamat MAC
+            val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(DEVICE_ADDRESS)
+
+            val bluetoothGatt = device?.connectGatt(context, false, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
                     super.onConnectionStateChange(gatt, status, newState)
                     Log.i("BluetoothConfig", "Connection state changed: $newState, status: $status")
@@ -510,7 +516,7 @@ class BluetoothConfigActivity : ComponentActivity() {
 
 
             }, TRANSPORT_LE)
-            Log.i("BluetoothConfig", "Attempting to connect to device: ${device.address}")
+            Log.i("BluetoothConfig", "Attempting to connect to device: ${device?.address}")
 
         } else {
             ActivityCompat.requestPermissions(
