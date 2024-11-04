@@ -313,6 +313,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                             //We successfully connected, proceed with service discovery
                             Log.i("BluetoothConfig", "Connected to GATT server.")
                             isConnected = true // Update connection status
+                            bluetoothGatt = gatt
                             if (ActivityCompat.checkSelfPermission(
                                     context,
                                     Manifest.permission.BLUETOOTH_CONNECT
@@ -369,6 +370,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                             }
 
 
+                            gatt?.discoverServices()
                             showConnectionSucceedDialog(context)
                         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                             //We successufully disconnected on our own request
@@ -381,7 +383,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                         }
                     } else {
                         gatt?.close()
-                        showConnectionFailedDialog(context)
+                        //showConnectionFailedDialog(context)
                     }
                 }
 
@@ -449,6 +451,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                             deviceName = device.name ?: "Unknown Device"
                             serviceUUID = uuid
                             showDialog = true
+                            showConnectionSucceedDialog(context)
 
                         }
                     } else {
