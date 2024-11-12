@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import androidx.activity.viewModels
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+
 
 
 class MainActivity : ComponentActivity() {
@@ -54,14 +59,14 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(hrvViewModel: HrvViewModel) {
-    val hrvValue by hrvViewModel.hrvValue.observeAsState("HRV: Waiting...") // Observe LiveData
+    val hrvValue by hrvViewModel.hrvValue.observeAsState("HRV: Waiting...")
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("HRV App") },
                 actions = {
-                    val context = LocalContext.current
                     IconButton(onClick = {
                         val intent = Intent(context, BluetoothConfigActivity::class.java)
                         context.startActivity(intent)
@@ -81,9 +86,21 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(text = hrvValue, style = MaterialTheme.typography.titleLarge)
+
+            // Button to open PredictionActivity
+            Button(
+                onClick = {
+                    val intent = Intent(context, PredictionActivity::class.java)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                Text("Open Prediction")
+            }
         }
     }
 }
+
 
 
 @Preview(showBackground = true)

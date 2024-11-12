@@ -72,4 +72,6 @@ dependencies {
     // Tambahkan dependencies untuk BLE
     implementation("com.polidea.rxandroidble2:rxandroidble:1.11.1")
     implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:latest.release")
 }
