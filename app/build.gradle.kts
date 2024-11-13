@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    kotlin("kapt")
 }
 
 android {
@@ -73,5 +74,11 @@ dependencies {
     implementation("com.polidea.rxandroidble2:rxandroidble:1.11.1")
     implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 
+    // dependencies untuk ONNX
     implementation("com.microsoft.onnxruntime:onnxruntime-android:latest.release")
+
+    // Tambahkan dependensi Room
+    implementation("androidx.room:room-runtime:2.6.0")  // Menambahkan Room runtime
+    kapt("androidx.room:room-compiler:2.6.0")  // Menambahkan Room compiler untuk annotation processing
+    implementation("androidx.room:room-ktx:2.6.0")  // Optional: Jika menggunakan coroutines untuk Room
 }

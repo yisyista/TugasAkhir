@@ -27,7 +27,7 @@ class PredictionActivity : ComponentActivity() {
         setContent {
             PredictionScreen { nn20, scrFrequency, scrAmplitudeMax, scrNumber, scrAmplitudeSTD ->
                 try {
-                    val output = predictor.runPrediction(nn20, scrFrequency, scrAmplitudeMax, scrNumber, scrAmplitudeSTD)
+                    val output = predictor.runPrediction(nn20, scrFrequency, scrAmplitudeMax, scrNumber, scrAmplitudeSTD, context = this)
                     "Output is $output"
                 } catch (e: Exception) {
                     Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()

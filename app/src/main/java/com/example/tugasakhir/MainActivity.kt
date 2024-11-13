@@ -1,6 +1,5 @@
 package com.example.tugasakhir
 
-
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,29 +18,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Button
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import androidx.activity.viewModels
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import com.example.tugasakhir.ui.theme.Purple500
-import com.example.tugasakhir.BarGraph
-import com.example.tugasakhir.BarType
-
-
-
+import android.app.Application
+import androidx.compose.ui.tooling.preview.Preview
+import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.ViewModelProvider
+import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 
 class MainActivity : ComponentActivity() {
     private val hrvViewModel: HrvViewModel by viewModels()
@@ -59,13 +52,27 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Memanggil loadTingkatAnxiety untuk memuat ulang data setiap kali MainActivity tampil
+        hrvViewModel.loadTingkatAnxiety()
+        Log.d("MainActivity", "loadTingkatAnxiety() called in onResume")
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(hrvViewModel: HrvViewModel) {
     val hrvValue by hrvViewModel.hrvValue.observeAsState("HRV: Waiting...")
+    val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList()) // Observasi tingkatAnxietyList
     val context = LocalContext.current
+
+    // Memicu pembaruan data setiap kali tingkatAnxietyList berubah
+    LaunchedEffect(key1 = tingkatAnxietyList) {
+        // Pastikan data diperbarui setiap kali tingkatAnxietyList berubah
+        hrvViewModel.loadTingkatAnxiety()
+    }
 
     Scaffold(
         topBar = {
@@ -112,13 +119,13 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val dataList = mutableListOf(30, 60, 90, 50, 70)
-                val floatValue = mutableListOf<Float>()
-                val datesList = mutableListOf(2, 3, 4, 5, 6)
+                // Mapping tingkatAnxietyList data into a graph-friendly format
+                val dataList = tingkatAnxietyList.map { it.tingkatAnxiety } // Mengambil nilai tingkatAnxiety
+                Log.d("GraphData", "Data List: $dataList")  // Log data yang digunakan untuk grafik
 
-                dataList.forEachIndexed { index, value ->
-                    floatValue.add(index = index, element = value.toFloat() / dataList.max().toFloat())
-                }
+                val floatValue = dataList.map { it.toFloat() / dataList.maxOrNull()?.toFloat()!! ?: 1f } // Normalisasi
+                val datesList = List(dataList.size) { it + 1 } // Membuat tanggal (misal, 1, 2, 3...)
+                Log.d("GraphData", "Normalized Data: $floatValue") // Log normalized data
 
                 BarGraph(
                     graphBarData = floatValue,
@@ -135,14 +142,13 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
     }
 }
 
-
-
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    val mockHrvViewModel = HrvViewModel() // Create a mock instance for the preview
-    mockHrvViewModel.updateHrvValue("HRV: 50") // Set a default value for preview
+    val context = LocalContext.current
+    val mockHrvViewModel = HrvViewModel(context.applicationContext as Application) // Gunakan Application dari LocalContext
+    mockHrvViewModel.updateHrvValue("HRV: 50") // Set default value for preview
+
     TugasAkhirTheme {
         MainScreen(mockHrvViewModel) // Pass the mock ViewModel
     }

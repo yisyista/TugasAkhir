@@ -5,15 +5,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
 import androidx.compose.animation.core.*
 import androidx.compose.animation.core.tween
 import android.graphics.Paint
@@ -21,7 +17,6 @@ import kotlin.math.round
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.Top
 import androidx.compose.ui.Alignment
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,7 +36,7 @@ import androidx.compose.ui.unit.sp
     fun BarGraph(
         graphBarData: List<Float>,
         xAxisScaleData: List<Int>,
-        barData_: List<Int>,
+        barData_: List<Long>,
         height: Dp,
         roundType: BarType,
         barWidth: Dp,

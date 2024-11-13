@@ -5,9 +5,10 @@ import ai.onnxruntime.OrtSession
 import android.content.Context
 import android.util.Log
 import java.nio.DoubleBuffer
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
 import java.nio.LongBuffer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class OnnxModelPredictor(private val ortEnvironment: OrtEnvironment) {
     private lateinit var ortSession: OrtSession
@@ -23,7 +24,8 @@ class OnnxModelPredictor(private val ortEnvironment: OrtEnvironment) {
         scrFrequency: Double,
         scrAmplitudeMax: Double,
         scrNumber: Long,
-        scrAmplitudeStd: Double
+        scrAmplitudeStd: Double,
+        context: Context
     ): Long {
         // Define input tensors with correct types for each feature
         val inputTensors = mapOf(
@@ -39,6 +41,20 @@ class OnnxModelPredictor(private val ortEnvironment: OrtEnvironment) {
         Log.i("OnnxModelPredictor", "results masuk")
         val output = results[0].value as LongArray
         Log.i("OnnxModelPredictor", "output masuk")
+
+        // Menyimpan hasil output ke Room Database
+        val tingkatAnxiety = output[0] // Nilai yang diperoleh dari output model
+
+        // Mendapatkan instance database
+        val db = AppDatabase.getDatabase(context)
+
+        // Menyimpan nilai output ke database dalam coroutine (background thread)
+        GlobalScope.launch(Dispatchers.IO) {
+            val dao = db.dataAccessObject()
+            val entity = TingkatAnxietyEntity(tingkatAnxiety = tingkatAnxiety)
+            dao.insertTingkatAnxiety(entity) // Insert data ke database
+        }
+
         return output[0]
     }
 
