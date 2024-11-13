@@ -1,5 +1,6 @@
 package com.example.tugasakhir
 
+
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -35,6 +36,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import com.example.tugasakhir.ui.theme.Purple500
+import com.example.tugasakhir.BarGraph
+import com.example.tugasakhir.BarType
+
 
 
 
@@ -85,6 +90,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Display HRV value
             Text(text = hrvValue, style = MaterialTheme.typography.titleLarge)
 
             // Button to open PredictionActivity
@@ -97,9 +103,38 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
             ) {
                 Text("Open Prediction")
             }
+
+            // Bar chart
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 30.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val dataList = mutableListOf(30, 60, 90, 50, 70)
+                val floatValue = mutableListOf<Float>()
+                val datesList = mutableListOf(2, 3, 4, 5, 6)
+
+                dataList.forEachIndexed { index, value ->
+                    floatValue.add(index = index, element = value.toFloat() / dataList.max().toFloat())
+                }
+
+                BarGraph(
+                    graphBarData = floatValue,
+                    xAxisScaleData = datesList,
+                    barData_ = dataList,
+                    height = 300.dp,
+                    roundType = BarType.TOP_CURVED,
+                    barWidth = 20.dp,
+                    barColor = Purple500,
+                    barArrangement = Arrangement.SpaceEvenly
+                )
+            }
         }
     }
 }
+
 
 
 

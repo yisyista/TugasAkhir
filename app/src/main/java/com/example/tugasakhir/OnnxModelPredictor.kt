@@ -40,7 +40,6 @@ class OnnxModelPredictor(private val ortEnvironment: OrtEnvironment) {
         val output = results[0].value as LongArray
         Log.i("OnnxModelPredictor", "output masuk")
         return output[0]
-        Log.i("OnnxModelPredictor", "return output berhasil")
     }
 
 }
