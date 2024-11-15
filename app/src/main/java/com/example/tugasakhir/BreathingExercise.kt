@@ -3,8 +3,10 @@ package com.example.tugasakhir
 import androidx.activity.ComponentActivity
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
@@ -26,6 +28,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -74,25 +77,43 @@ fun Timer(
     initialValue: Float = 1f,
     strokeWidth: Dp = 5.dp
 ) {
-    var size by remember {
-        mutableStateOf(IntSize.Zero)
-    }
-    var value by remember {
-        mutableStateOf(initialValue)
-    }
-    var currentTime by remember {
-        mutableStateOf(totalTime)
-    }
-    var isTimerRunning by remember {
-        mutableStateOf(false)
-    }
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    var value by remember { mutableStateOf(initialValue) }
+    var currentTime by remember { mutableStateOf(totalTime) }
+    var isTimerRunning by remember { mutableStateOf(false) }
+
+    // Tambahkan state untuk fase pernapasan
+    var phase by remember { mutableStateOf("Inhale") }
+    var phaseCountdown by remember { mutableStateOf(4) }
+
+    // Update logika pernapasan
     LaunchedEffect(key1 = currentTime, key2 = isTimerRunning) {
-        if(currentTime > 0 && isTimerRunning) {
-            delay(100L)
-            currentTime -= 100L
+        if (currentTime > 0 && isTimerRunning) {
+            delay(1000L) // Tunggu 1 detik
+            currentTime -= 1000L
+            phaseCountdown-- // Kurangi hitungan fase
+
+            if (phaseCountdown <= 0) {
+                when (phase) {
+                    "Inhale" -> {
+                        phase = "Hold"
+                        phaseCountdown = 7
+                    }
+                    "Hold" -> {
+                        phase = "Exhale"
+                        phaseCountdown = 8
+                    }
+                    "Exhale" -> {
+                        phase = "Inhale"
+                        phaseCountdown = 4
+                    }
+                }
+            }
+
             value = currentTime / totalTime.toFloat()
         }
     }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -130,28 +151,53 @@ fun Timer(
                 cap = StrokeCap.Round
             )
         }
-        Text(
-            text = (currentTime / 1000L).toString(),
-            fontSize = 44.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
+
+        // Gunakan Column agar phase dan phaseCountdown tidak bertumpuk
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Animasi untuk teks `phase`
+            AnimatedContent(targetState = phase) { currentPhase ->
+                Text(
+                    text = currentPhase,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            // Teks `phaseCountdown` tanpa animasi
+            Text(
+                text = phaseCountdown.toString(),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.LightGray
+            )
+        }
+
+
+
+        // Tombol untuk mengontrol timer
         Button(
             onClick = {
-                if(currentTime <= 0L) {
+                if (currentTime <= 0L) {
                     currentTime = totalTime
+                    phase = "Inhale" // Reset fase ke awal
+                    phaseCountdown = 4
                     isTimerRunning = true
                 } else {
                     isTimerRunning = !isTimerRunning
                 }
             },
             modifier = Modifier.align(Alignment.BottomCenter),
-            colors = ButtonDefaults.buttonColors(containerColor =
-            if (!isTimerRunning || currentTime <= 0L) {
-                Color.Green
-            } else {
-                Color.Red
-            }
+            colors = ButtonDefaults.buttonColors(
+                containerColor =
+                if (!isTimerRunning || currentTime <= 0L) {
+                    Color.Green
+                } else {
+                    Color.Red
+                }
             )
         ) {
             Text(
@@ -162,3 +208,4 @@ fun Timer(
         }
     }
 }
+
