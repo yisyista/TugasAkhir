@@ -108,12 +108,12 @@ import androidx.compose.ui.unit.sp
 
                     // Y-Axis Scale Text
                     val yAxisScaleText = (barData.max()) / 3f
-                    (0..3).forEach { i ->
+                    (0..2).forEach { i ->
                         drawContext.canvas.nativeCanvas.apply {
                             drawText(
-                                round(barData.min() + yAxisScaleText * i).toString(),
+                                (0 + 0.5 * i).toString(),
                                 30f,
-                                size.height - yAxisScaleSpacing - i * size.height / 3f,
+                                size.height - yAxisScaleSpacing - i * size.height / 2f,
                                 textPaint
                             )
                         }
@@ -123,11 +123,11 @@ import androidx.compose.ui.unit.sp
                             color = Color.White.toArgb() // Sesuaikan warna teks jika perlu
                         }
 
-                        yCoordinates.add(size.height - yAxisScaleSpacing - i * size.height / 3f)
+                        yCoordinates.add(size.height - yAxisScaleSpacing - i * size.height / 2f)
                     }
 
                     // horizontal dotted lines on graph indicating y-axis scale
-                    (1..3).forEach {
+                    (1..2).forEach {
                         drawLine(
                             start = Offset(x = yAxisScaleSpacing +30f, y = yCoordinates[it]),
                             end = Offset(x= size.width, y = yCoordinates[it]),
