@@ -111,6 +111,19 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 Text("Open Prediction")
             }
 
+            // Button to open PredictionActivity
+            Button(
+                onClick = {
+                    val intent = Intent(context, BreathingExercise::class.java)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                Text("Breathing Exercise")
+            }
+
+
+
             // Bar chart
             Column(
                 modifier = Modifier

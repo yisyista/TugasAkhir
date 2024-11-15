@@ -46,6 +46,8 @@
 
         <activity android:name=".PredictionActivity" />
 
+        <activity android:name=".BreathingExercise" />
+
     </application>
 
 </manifest>
