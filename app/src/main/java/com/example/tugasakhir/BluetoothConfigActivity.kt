@@ -56,6 +56,8 @@ import kotlin.let
 import java.util.Locale
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 private var isConnected by mutableStateOf(false) // Track connection status
 
@@ -232,8 +234,8 @@ class BluetoothConfigActivity : ComponentActivity() {
                     Button(onClick = {
                         showDialog = false
                         // Navigate back to MainActivity
-                        //context.startActivity(Intent(context, MainActivity::class.java))
-                        //(context as Activity).finish()
+                        context.startActivity(Intent(context, MainActivity::class.java))
+                        (context as Activity).finish()
                     }) {
                         Text("Ok")
                     }
@@ -322,6 +324,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
                             //We successfully connected, proceed with service discovery
                             Log.i("BluetoothConfig", "Connected to GATT server.")
+
                             bluetoothGatt = gatt
                             if (ActivityCompat.checkSelfPermission(
                                     context,
@@ -437,11 +440,14 @@ class BluetoothConfigActivity : ComponentActivity() {
                     }
 
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        gatt?.services?.firstOrNull()?.let { service ->
+                        //gatt?.services?.firstOrNull()?.let { service ->
+                        val services = gatt?.services
+                        for (service in services!!) {
                             //val uuid = service.uuid.toString()
                             // Asumsi Anda sudah mendapatkan service dari gatt
                             val serviceUUIDs = service.uuid.toString()
                             Log.i("BluetoothConfig", "Service UUID discovered: $serviceUUIDs") // Log UUID service
+                            Log.d("BluetoothConfig", "Connected to device: ${gatt?.device?.address}")
 
                             // Mendapatkan daftar characteristics dari service
                             val characteristics = service.characteristics
@@ -502,18 +508,22 @@ class BluetoothConfigActivity : ComponentActivity() {
                 }
 
                 @Deprecated("Deprecated in Java")
-                override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-                    // Get the byte array from the characteristic
-                    val data = characteristic.value // Get the byte array
+                override fun onCharacteristicChanged(
+                    gatt: BluetoothGatt?,
+                    characteristic: BluetoothGattCharacteristic?
+                ) {
+                    characteristic?.value?.let { data ->
+                        Log.d("BLE", "Raw data: ${data.joinToString(", ")}")
+                        // Convert byte array to integer
+                        val hrvValue = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).float
 
-                    // Convert bytes to a String
-                    val hrvValue = String(data, Charsets.UTF_8) // Convert byte array to String
-                    Log.d("ReceivedData", "Data received: $hrvValue")
+                        // Log or display the integer value
+                        Log.d("BLE", "Received HRV Value: $hrvValue")
 
-                    // Call the method to update the ViewModel with the new HRV value
-                    hrvViewModel.updateHrvValue(hrvValue) // Ensure you're calling the correct method
+                        // Call the method to update the ViewModel with the new HRV value
+                        hrvViewModel._hrvValue.postValue(hrvValue)
+                    }
                 }
-
 
             }, TRANSPORT_LE)
             Log.i("BluetoothConfig", "Attempting to connect to device: ${device?.address}")
@@ -557,9 +567,6 @@ class BluetoothConfigActivity : ComponentActivity() {
 
         return characteristic
     }
-
-
-
 
 
     companion object {

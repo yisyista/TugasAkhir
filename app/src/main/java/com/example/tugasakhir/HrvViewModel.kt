@@ -14,15 +14,15 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getDatabase(application).dataAccessObject()
 
     // LiveData untuk menyimpan nilai HRV
-    private val _hrvValue = MutableLiveData<String>("HRV: Waiting...")
-    val hrvValue: LiveData<String> get() = _hrvValue
+    val _hrvValue = MutableLiveData<Float>(0f)  // Store as Float
+    val hrvValue: LiveData<Float> get() = _hrvValue
 
     // LiveData untuk menyimpan list tingkatAnxiety
     private val _tingkatAnxietyList = MutableLiveData<List<TingkatAnxietyEntity>>()
     val tingkatAnxietyList: LiveData<List<TingkatAnxietyEntity>> get() = _tingkatAnxietyList
 
     // Fungsi untuk update nilai HRV
-    fun updateHrvValue(value: String) {
+    fun updateHrvValue(value: Float) {
         _hrvValue.value = value
     }
 

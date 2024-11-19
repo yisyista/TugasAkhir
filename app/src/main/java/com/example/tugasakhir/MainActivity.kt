@@ -33,8 +33,6 @@ import android.app.Application
 import androidx.compose.ui.tooling.preview.Preview
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.ViewModelProvider
-import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 
 class MainActivity : ComponentActivity() {
     private val hrvViewModel: HrvViewModel by viewModels()
@@ -58,6 +56,7 @@ class MainActivity : ComponentActivity() {
         // Memanggil loadTingkatAnxiety untuk memuat ulang data setiap kali MainActivity tampil
         hrvViewModel.loadTingkatAnxiety()
         Log.d("MainActivity", "loadTingkatAnxiety() called in onResume")
+
     }
 }
 
@@ -98,7 +97,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
             verticalArrangement = Arrangement.Center
         ) {
             // Display HRV value
-            Text(text = hrvValue, style = MaterialTheme.typography.titleLarge)
+            Text(text = "HRV: ${hrvValue}", style = MaterialTheme.typography.titleLarge)  // Convert to String
 
             // Button to open PredictionActivity
             Button(
@@ -160,7 +159,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
 fun DefaultPreview() {
     val context = LocalContext.current
     val mockHrvViewModel = HrvViewModel(context.applicationContext as Application) // Gunakan Application dari LocalContext
-    mockHrvViewModel.updateHrvValue("HRV: 50") // Set default value for preview
+    mockHrvViewModel.updateHrvValue(0f) // Set default value for preview
 
     TugasAkhirTheme {
         MainScreen(mockHrvViewModel) // Pass the mock ViewModel
