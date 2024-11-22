@@ -56,6 +56,9 @@ import kotlin.let
 import java.util.Locale
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -514,16 +517,51 @@ class BluetoothConfigActivity : ComponentActivity() {
                 ) {
                     characteristic?.value?.let { data ->
                         Log.d("BLE", "Raw data: ${data.joinToString(", ")}")
-                        // Convert byte array to integer
-                        val hrvValue = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).float
 
-                        // Log or display the integer value
-                        Log.d("BLE", "Received HRV Value: $hrvValue")
+                        // Ensure the received data length matches the expected size (6 floats = 6 * 4 bytes = 24 bytes)
+                        if (data.size == 5*4) {
+                            // Use ByteBuffer to read the data
+                            val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
 
-                        // Call the method to update the ViewModel with the new HRV value
-                        hrvViewModel._hrvValue.postValue(hrvValue)
+                            // Extract each float value from the byte array
+                            val value1 = buffer.int
+                            val value2 = buffer.float
+                            val value3 = buffer.float
+                            val value4 = buffer.int
+                            val value5 = buffer.float
+
+                            // Log the extracted values
+                            Log.d("BLE", "Received values: value1=$value1, value2=$value2, value3=$value3, value4=$value4, value5=$value5")
+
+                            // Update the ViewModel or UI with the individual values as needed
+                            hrvViewModel._hrvValue.postValue(
+                                value2
+                            )
+
+                            // Menyimpan nilai ke database menggunakan Room
+                            val dataSensor = DataSensorEntity(
+                                nn20 = value1,
+                                scrFreq = value2,
+                                scrAmplitudeMax = value3,
+                                scrNumber = value4,
+                                scrAmplitudeStd = value5,
+                                timestamp = System.currentTimeMillis() // Menyimpan timestamp saat data diterima
+                            )
+
+                            // Menyimpan ke database menggunakan DAO
+                            val dataAccessObject = AppDatabase.getDatabase(context).dataAccessObject()
+                            GlobalScope.launch {
+                                dataAccessObject.insertDataSensor(dataSensor)
+                            }
+
+                            Log.e("Database", "Data Masuk")
+
+                        } else {
+                            Log.e("BLE", "Unexpected data size: ${data.size}, expected 24 bytes for 6 floats")
+                        }
                     }
                 }
+
 
             }, TRANSPORT_LE)
             Log.i("BluetoothConfig", "Attempting to connect to device: ${device?.address}")

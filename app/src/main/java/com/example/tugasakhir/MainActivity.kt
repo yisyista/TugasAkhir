@@ -110,10 +110,21 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 Text("Open Prediction")
             }
 
-            // Button to open PredictionActivity
+            // Button to open Breating Exercise
             Button(
                 onClick = {
                     val intent = Intent(context, BreathingExercise::class.java)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                Text("Breathing Exercise")
+            }
+
+            // Button to open Breating Exercise
+            Button(
+                onClick = {
+                    val intent = Intent(context, ClassificationActivity::class.java)
                     context.startActivity(intent)
                 },
                 modifier = Modifier.padding(top = 16.dp)

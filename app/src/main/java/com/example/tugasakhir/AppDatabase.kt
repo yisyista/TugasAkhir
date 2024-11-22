@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [TingkatAnxietyEntity::class], version = 1)
+@Database(entities = [TingkatAnxietyEntity::class, DataSensorEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dataAccessObject(): DataAccessObject
 
@@ -18,7 +18,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "tingkat_anxiety_database"
+                    "app_database"
                 ).build()
                 INSTANCE = instance
                 instance
