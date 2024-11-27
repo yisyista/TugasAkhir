@@ -158,7 +158,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                     barData_ = dataList,
                     height = 300.dp,
                     roundType = BarType.TOP_CURVED,
-                    barWidth = 10.dp,
+                    barWidth = 20.dp,
                     barColor = Purple500,
                     barArrangement = Arrangement.SpaceEvenly
                 )
