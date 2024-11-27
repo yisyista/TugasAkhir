@@ -1,5 +1,6 @@
 package com.example.tugasakhir
 
+import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,10 +30,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import com.example.tugasakhir.ui.theme.Purple500
-import android.app.Application
-import androidx.compose.ui.tooling.preview.Preview
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.tooling.preview.Preview
 
 class MainActivity : ComponentActivity() {
     private val hrvViewModel: HrvViewModel by viewModels()
@@ -53,10 +53,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Memanggil loadTingkatAnxiety untuk memuat ulang data setiap kali MainActivity tampil
-        hrvViewModel.loadTingkatAnxiety()
-        Log.d("MainActivity", "loadTingkatAnxiety() called in onResume")
-
+        Log.d("MainActivity", "MainActivity resumed")
     }
 }
 
@@ -64,13 +61,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(hrvViewModel: HrvViewModel) {
     val hrvValue by hrvViewModel.hrvValue.observeAsState("HRV: Waiting...")
-    val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList()) // Observasi tingkatAnxietyList
+    val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList())
+
     val context = LocalContext.current
 
-    // Memicu pembaruan data setiap kali tingkatAnxietyList berubah
     LaunchedEffect(key1 = tingkatAnxietyList) {
-        // Pastikan data diperbarui setiap kali tingkatAnxietyList berubah
-        hrvViewModel.loadTingkatAnxiety()
+        Log.d("MainScreen", "Tingkat Anxiety List updated.")
     }
 
     Scaffold(
@@ -96,10 +92,8 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Display HRV value
-            Text(text = "HRV: ${hrvValue}", style = MaterialTheme.typography.titleLarge)  // Convert to String
+            Text(text = "HRV: $hrvValue", style = MaterialTheme.typography.titleLarge)
 
-            // Button to open PredictionActivity
             Button(
                 onClick = {
                     val intent = Intent(context, PredictionActivity::class.java)
@@ -110,7 +104,6 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 Text("Open Prediction")
             }
 
-            // Button to open Breating Exercise
             Button(
                 onClick = {
                     val intent = Intent(context, BreathingExercise::class.java)
@@ -121,20 +114,6 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 Text("Breathing Exercise")
             }
 
-            // Button to open Breating Exercise
-            Button(
-                onClick = {
-                    val intent = Intent(context, ClassificationActivity::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Breathing Exercise")
-            }
-
-
-
-            // Bar chart
             Column(
                 modifier = Modifier
                     .padding(horizontal = 30.dp)
@@ -142,16 +121,28 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Mapping tingkatAnxietyList data into a graph-friendly format
-                val dataList = tingkatAnxietyList.map { it.tingkatAnxiety } // Mengambil nilai tingkatAnxiety
-                Log.d("GraphData", "Data List: $dataList")  // Log data yang digunakan untuk grafik
+                val dataList = tingkatAnxietyList.map { it.tingkatAnxiety }
+                Log.d("GraphData", "Raw Data: $dataList")
 
-                val floatValue = dataList.map { it.toFloat() / dataList.maxOrNull()?.toFloat()!! ?: 1f } // Normalisasi
-                val datesList = List(dataList.size) { it + 1 } // Membuat tanggal (misal, 1, 2, 3...)
-                Log.d("GraphData", "Normalized Data: $floatValue") // Log normalized data
+                if (dataList.isEmpty()) {
+                    Log.e("GraphData", "Data List is empty. Cannot create graph.")
+                    return@Column
+                }
 
+                val maxValue = dataList.maxOrNull()?.toFloat() ?: 1f
+                Log.d("GraphData", "Max Value: $maxValue")
+
+                val normalizedData = dataList.map {
+                    if (maxValue != 0f) it.toFloat() / maxValue else 0f
+                }
+
+                val finalData = normalizedData.map { it.takeIf { value -> value.isFinite() } ?: 0f }
+                val datesList = List(dataList.size) { it + 1 }
+                Log.d("GraphData", "Normalized Data: $finalData")
+
+                // Ensure you have BarGraph component available
                 BarGraph(
-                    graphBarData = floatValue,
+                    graphBarData = finalData,
                     xAxisScaleData = datesList,
                     barData_ = dataList,
                     height = 300.dp,
@@ -169,11 +160,10 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
 @Composable
 fun DefaultPreview() {
     val context = LocalContext.current
-    val mockHrvViewModel = HrvViewModel(context.applicationContext as Application) // Gunakan Application dari LocalContext
-    mockHrvViewModel.updateHrvValue(0f) // Set default value for preview
+    val mockHrvViewModel = HrvViewModel(context.applicationContext as Application)
+    mockHrvViewModel.updateHrvValue(0f)
 
     TugasAkhirTheme {
-        MainScreen(mockHrvViewModel) // Pass the mock ViewModel
+        MainScreen(mockHrvViewModel)
     }
 }
-

@@ -6,15 +6,20 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.liveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+
 
 class HrvViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Instance dari DAO untuk akses ke database
     private val dao = AppDatabase.getDatabase(application).dataAccessObject()
 
     // LiveData untuk menyimpan nilai HRV
-    val _hrvValue = MutableLiveData<Float>(0f)  // Store as Float
+    val _hrvValue = MutableLiveData<Float>(0f)
     val hrvValue: LiveData<Float> get() = _hrvValue
 
     // LiveData untuk menyimpan list tingkatAnxiety
@@ -26,17 +31,25 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
         _hrvValue.value = value
     }
 
-    // Fungsi untuk mengambil data tingkatAnxiety dari database
-    fun loadTingkatAnxiety() {
+    // Fungsi untuk mengamati tingkatAnxiety menggunakan Flow
+    fun observeAnxietyLevels() {
         viewModelScope.launch {
             try {
-                val data = dao.getAllTingkatAnxiety()
-                _tingkatAnxietyList.postValue(data)
+                // Mengambil Flow dari DAO
+                dao.getAllTingkatAnxiety() // Flow dari database
+                    .flowOn(Dispatchers.IO) // Menjalankan Flow di thread IO
+                    .collect { anxietyList ->
+                        // Mengirim data ke LiveData
+                        _tingkatAnxietyList.postValue(anxietyList)
+                    }
             } catch (e: Exception) {
-                // Log error atau tangani kesalahan
-                Log.i("HrvViewModel", "error load tingkatAnxiety")
+                e.printStackTrace()
             }
         }
     }
 
+    // Optional: Fungsi untuk memulai pengambilan data sekali saja saat ViewModel diinisialisasi
+    init {
+        observeAnxietyLevels() // Mulai mengamati data saat ViewModel pertama kali diinisialisasi
+    }
 }

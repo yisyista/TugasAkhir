@@ -49,11 +49,12 @@ class OnnxModelPredictor(private val ortEnvironment: OrtEnvironment) {
         val db = AppDatabase.getDatabase(context)
 
         // Menyimpan nilai output ke database dalam coroutine (background thread)
-        GlobalScope.launch(Dispatchers.IO) {
+        /**GlobalScope.launch(Dispatchers.IO) {
             val dao = db.dataAccessObject()
             val entity = TingkatAnxietyEntity(tingkatAnxiety = tingkatAnxiety)
             dao.insertTingkatAnxiety(entity) // Insert data ke database
         }
+        **/
 
         return output[0]
     }

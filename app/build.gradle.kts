@@ -81,4 +81,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.0")  // Menambahkan Room runtime
     kapt("androidx.room:room-compiler:2.6.0")  // Menambahkan Room compiler untuk annotation processing
     implementation("androidx.room:room-ktx:2.6.0")  // Optional: Jika menggunakan coroutines untuk Room
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+
 }

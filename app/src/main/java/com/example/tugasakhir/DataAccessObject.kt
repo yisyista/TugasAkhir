@@ -11,7 +11,7 @@ interface DataAccessObject {
     suspend fun insertTingkatAnxiety(tingkatAnxiety: TingkatAnxietyEntity)
 
     @Query("SELECT * FROM tingkat_anxiety")
-    suspend fun getAllTingkatAnxiety(): List<TingkatAnxietyEntity>
+    fun getAllTingkatAnxiety(): Flow<List<TingkatAnxietyEntity>>
 
     // Untuk DataSensorEntity
     @Insert

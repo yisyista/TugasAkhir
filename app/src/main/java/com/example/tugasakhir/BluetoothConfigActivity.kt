@@ -61,6 +61,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.Data
 
 private var isConnected by mutableStateOf(false) // Track connection status
 
@@ -518,49 +521,43 @@ class BluetoothConfigActivity : ComponentActivity() {
                     characteristic?.value?.let { data ->
                         Log.d("BLE", "Raw data: ${data.joinToString(", ")}")
 
-                        // Ensure the received data length matches the expected size (6 floats = 6 * 4 bytes = 24 bytes)
-                        if (data.size == 5*4) {
-                            // Use ByteBuffer to read the data
+                        // Pastikan panjang data sesuai (5 nilai: 2 int, 3 float = 5 * 4 bytes = 20 bytes)
+                        if (data.size == 5 * 4) {
+                            // Gunakan ByteBuffer untuk membaca data
                             val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
 
-                            // Extract each float value from the byte array
+                            // Ambil nilai dari byte array
                             val value1 = buffer.int
                             val value2 = buffer.float
                             val value3 = buffer.float
                             val value4 = buffer.int
                             val value5 = buffer.float
 
-                            // Log the extracted values
+                            // Log nilai yang diterima
                             Log.d("BLE", "Received values: value1=$value1, value2=$value2, value3=$value3, value4=$value4, value5=$value5")
 
-                            // Update the ViewModel or UI with the individual values as needed
-                            hrvViewModel._hrvValue.postValue(
-                                value2
-                            )
+                            // Kirim data ke Worker untuk diproses
+                            val workData = Data.Builder()
+                                .putInt("NN20", value1)
+                                .putFloat("SCR_Frequency", value2)
+                                .putFloat("SCR_Amplitude_Max", value3)
+                                .putInt("SCR_Number", value4)
+                                .putFloat("SCR_Amplitude_STD", value5)
+                                .build()
 
-                            // Menyimpan nilai ke database menggunakan Room
-                            val dataSensor = DataSensorEntity(
-                                nn20 = value1,
-                                scrFreq = value2,
-                                scrAmplitudeMax = value3,
-                                scrNumber = value4,
-                                scrAmplitudeStd = value5,
-                                timestamp = System.currentTimeMillis() // Menyimpan timestamp saat data diterima
-                            )
+                            val workRequest = OneTimeWorkRequestBuilder<DataProcessingWorker>()
+                                .setInputData(workData)
+                                .build()
 
-                            // Menyimpan ke database menggunakan DAO
-                            val dataAccessObject = AppDatabase.getDatabase(context).dataAccessObject()
-                            GlobalScope.launch {
-                                dataAccessObject.insertDataSensor(dataSensor)
-                            }
+                            WorkManager.getInstance(context).enqueue(workRequest)
 
-                            Log.e("Database", "Data Masuk")
-
+                            Log.d("BLE", "Data sent to Worker for processing")
                         } else {
-                            Log.e("BLE", "Unexpected data size: ${data.size}, expected 24 bytes for 6 floats")
+                            Log.e("BLE", "Unexpected data size: ${data.size}, expected 20 bytes for 5 values")
                         }
                     }
                 }
+
 
 
             }, TRANSPORT_LE)
