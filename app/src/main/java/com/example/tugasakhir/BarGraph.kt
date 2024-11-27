@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
         // getting screen width
         val width = configuration.screenWidthDp.dp
 
+
         // bottom height of the X-Axis Scale
         val xAxisScaleHeight = 40.dp
 
@@ -145,8 +146,8 @@ import androidx.compose.ui.unit.sp
             // Graph with Bar Graph and X-Axis Scale
             Box(
                 modifier = Modifier
-                    .padding(start = 50.dp)
-                    .width(width - yAxisTextWidth)
+                    .padding(start = 50.dp) //awalnya 50.dp
+                    .width(width - yAxisTextWidth) //awalnya gaada +50.dp
                     .height(height + xAxisScaleHeight),
                 contentAlignment = BottomCenter
             ) {

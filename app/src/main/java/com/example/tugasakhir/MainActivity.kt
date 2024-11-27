@@ -114,6 +114,17 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 Text("Breathing Exercise")
             }
 
+            // Button untuk membuka halaman Anxiety Log
+            Button(
+                onClick = {
+                    val intent = Intent(context, AnxietyLogActivity::class.java)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                Text("View Anxiety Log")
+            }
+
             Column(
                 modifier = Modifier
                     .padding(horizontal = 30.dp)
@@ -147,7 +158,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                     barData_ = dataList,
                     height = 300.dp,
                     roundType = BarType.TOP_CURVED,
-                    barWidth = 20.dp,
+                    barWidth = 10.dp,
                     barColor = Purple500,
                     barArrangement = Arrangement.SpaceEvenly
                 )

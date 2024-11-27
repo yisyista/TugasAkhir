@@ -48,14 +48,9 @@
 
         <activity android:name=".BreathingExercise" />
 
-        <activity android:name=".ClassificationActivity"
-            android:exported="true">
-            <!-- Optional: If you want this activity to be started directly -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name=".AnxietyLogActivity" />
+
+
 
 
     </application>
