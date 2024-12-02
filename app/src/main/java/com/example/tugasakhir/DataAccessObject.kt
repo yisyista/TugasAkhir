@@ -26,7 +26,7 @@ interface DataAccessObject {
     @Query("""
         SELECT 
             AVG(tingkatAnxiety) AS avgTingkatAnxiety, 
-            strftime('%H', timestamp / 1000, 'unixepoch') AS hour
+            strftime('%H', timestamp / 1000, 'unixepoch', 'localtime') AS hour
         FROM tingkat_anxiety 
         WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp 
         GROUP BY hour 
@@ -41,7 +41,7 @@ interface DataAccessObject {
     @Query("""
         SELECT 
             AVG(tingkatAnxiety) AS avgTingkatAnxiety, 
-            strftime('%d', timestamp / 1000, 'unixepoch') AS day
+            strftime('%d', timestamp / 1000, 'unixepoch', 'localtime') AS day
         FROM tingkat_anxiety 
         WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp 
         GROUP BY day 
@@ -56,7 +56,7 @@ interface DataAccessObject {
     @Query("""
         SELECT 
             AVG(tingkatAnxiety) AS avgTingkatAnxiety, 
-            strftime('%W', timestamp / 1000, 'unixepoch') AS week
+            strftime('%W', timestamp / 1000, 'unixepoch', 'localtime') AS week
         FROM tingkat_anxiety 
         WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp 
         GROUP BY week 
@@ -72,7 +72,7 @@ interface DataAccessObject {
     @Query("""
         SELECT 
             AVG(tingkatAnxiety) AS avgTingkatAnxiety, 
-            strftime('%m', timestamp / 1000, 'unixepoch') AS month
+            strftime('%m', timestamp / 1000, 'unixepoch', 'localtime') AS month
         FROM tingkat_anxiety 
         WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp 
         GROUP BY month 
