@@ -40,7 +40,7 @@ class AnxietyGraphActivity : ComponentActivity() {
 fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     val averageAnxietyData by viewModel.averageAnxietyData.collectAsState()
     val rangeOptions = listOf("Hour", "Day", "Week", "Month")
-    var selectedRange by remember { mutableStateOf("Day") }
+    var selectedRange by remember { mutableStateOf("Hour") }
 
     LaunchedEffect(selectedRange) {
         viewModel.loadAnxietyData(selectedRange)  // Refresh data when range changes
