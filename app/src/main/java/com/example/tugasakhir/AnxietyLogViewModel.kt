@@ -19,7 +19,7 @@ class AnxietyLogViewModel(private val dao: DataAccessObject) : ViewModel() {
             val endTimestamp = calendar.timeInMillis
 
             val startTimestamp = when (range) {
-                "Day" -> {
+                "Hour" -> {
                     // Set waktu ke jam 00:00 pada hari ini
                     calendar.set(Calendar.HOUR_OF_DAY, 0)
                     calendar.set(Calendar.MINUTE, 0)
@@ -27,15 +27,15 @@ class AnxietyLogViewModel(private val dao: DataAccessObject) : ViewModel() {
                     calendar.set(Calendar.MILLISECOND, 0)
                     calendar.timeInMillis
                 }
-                "Week" -> {
+                "Day" -> {
                     calendar.add(Calendar.DAY_OF_YEAR, -7)
                     calendar.timeInMillis
                 }
-                "Month" -> {
+                "Week" -> {
                     calendar.add(Calendar.MONTH, -1)
                     calendar.timeInMillis
                 }
-                "Year" -> {
+                "Month" -> {
                     calendar.add(Calendar.YEAR, -1)
                     calendar.timeInMillis
                 }
@@ -45,10 +45,10 @@ class AnxietyLogViewModel(private val dao: DataAccessObject) : ViewModel() {
             // Menggunakan withContext untuk memastikan query dijalankan di thread latar belakang
             _averageAnxietyData.value = withContext(Dispatchers.IO) {
                 when (range) {
-                    "Day" -> dao.getAverageAnxietyByHour(startTimestamp, endTimestamp)
-                    "Week" -> dao.getAverageAnxietyByDay(startTimestamp, endTimestamp)
-                    "Month" -> dao.getAverageAnxietyByWeek(startTimestamp, endTimestamp)
-                    "Year" -> dao.getAverageAnxietyByMonth(startTimestamp, endTimestamp)
+                    "Hour" -> dao.getAverageAnxietyByHour(startTimestamp, endTimestamp)
+                    "Day" -> dao.getAverageAnxietyByDay(startTimestamp, endTimestamp)
+                    "Week" -> dao.getAverageAnxietyByWeek(startTimestamp, endTimestamp)
+                    "Month" -> dao.getAverageAnxietyByMonth(startTimestamp, endTimestamp)
                     else -> emptyList()
                 }
             }

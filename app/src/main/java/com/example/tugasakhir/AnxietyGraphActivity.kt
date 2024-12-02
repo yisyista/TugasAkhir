@@ -39,7 +39,7 @@ class AnxietyGraphActivity : ComponentActivity() {
 @Composable
 fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     val averageAnxietyData by viewModel.averageAnxietyData.collectAsState()
-    val rangeOptions = listOf("Day", "Week", "Month", "Year")
+    val rangeOptions = listOf("Hour", "Day", "Week", "Month")
     var selectedRange by remember { mutableStateOf("Day") }
 
     LaunchedEffect(selectedRange) {
@@ -47,20 +47,20 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     }
 
     val xAxisScaleData = when (selectedRange) {
-        "Day" -> averageAnxietyData.map {
+        "Hour" -> averageAnxietyData.map {
             Log.d("AnxietyGraph", "Average Anxiety Data: $averageAnxietyData")
             Log.d("AnxietyGraph", "Hour: ${it.hour}")  // Ganti timestamp dengan hour
             it.hour.toString()  // Gunakan hour sebagai label
         }
-        "Week" -> averageAnxietyData.map {
+        "Day" -> averageAnxietyData.map {
             Log.d("AnxietyGraph", "Week: ${it.day}")
             it.day.toString()  // Gunakan week sebagai label
         }
-        "Month" -> averageAnxietyData.map {
+        "Week" -> averageAnxietyData.map {
             Log.d("AnxietyGraph", "Month: ${it.week}")
             it.week.toString()  // Gunakan month sebagai label
         }
-        "Year" -> averageAnxietyData.map {
+        "Month" -> averageAnxietyData.map {
             Log.d("AnxietyGraph", "Month: ${it.month}")
             it.month.toString()  // Gunakan month untuk year (untuk data yang ada di bulan Desember)
         }
