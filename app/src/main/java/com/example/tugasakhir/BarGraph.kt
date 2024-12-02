@@ -35,10 +35,10 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 
 @Composable
-fun BarGraph(
+fun <T> BarGraph(
     graphBarData: List<Float>,
-    xAxisScaleData: List<Int>,
-    barData_: List<Long>,
+    xAxisScaleData: List<T>,
+    barData_: List<Float>,
     height: Dp,
     roundType: BarType,
     barWidth: Dp,
@@ -47,7 +47,7 @@ fun BarGraph(
 ) {
 
     val barData by remember {
-        mutableStateOf(barData_ + 0)
+        mutableStateOf(barData_.toList() + 0f)  // Pastikan barData_ adalah List<Float> dan menambahkan 0f
     }
 
     val configuration = LocalConfiguration.current
@@ -95,7 +95,8 @@ fun BarGraph(
 
             Canvas(modifier = Modifier.padding(bottom = 10.dp).fillMaxSize()) {
 
-                val yAxisScaleText = (barData.max()) / 3f
+                val yAxisScaleText = (barData.maxOrNull() ?: 0f) / 3f
+
                 (0..2).forEach { i ->
                     drawContext.canvas.nativeCanvas.apply {
                         drawText(

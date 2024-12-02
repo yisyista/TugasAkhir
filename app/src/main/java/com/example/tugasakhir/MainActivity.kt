@@ -143,7 +143,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val dataList = tingkatAnxietyList.map { it.tingkatAnxiety }
+                val dataList = tingkatAnxietyList.map { it.tingkatAnxiety.toFloat() } //awalnya gaada .toFloat
                 Log.d("GraphData", "Raw Data: $dataList")
 
                 if (dataList.isEmpty()) {
