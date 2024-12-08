@@ -16,7 +16,11 @@ import androidx.compose.ui.unit.dp
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import com.example.tugasakhir.ui.theme.Purple500
 import java.util.Calendar  // Untuk bekerja dengan kalender dan mengambil informasi waktu dari timestamp
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 class AnxietyGraphActivity : ComponentActivity() {
     private val viewModel: AnxietyLogViewModel by viewModels {
@@ -41,33 +45,24 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     val averageAnxietyData by viewModel.averageAnxietyData.collectAsState()
     val rangeOptions = listOf("Hour", "Day", "Week", "Month")
     var selectedRange by remember { mutableStateOf("Hour") }
+    var selectedDateTimestamp by remember { mutableStateOf(Calendar.getInstance().timeInMillis) }
 
-    LaunchedEffect(selectedRange) {
-        viewModel.loadAnxietyData(selectedRange)  // Refresh data when range changes
+    // Memicu pembaruan data setiap kali rentang atau tanggal berubah
+    LaunchedEffect(selectedRange, selectedDateTimestamp) {
+        if (selectedRange == "Hour") {
+            viewModel.loadAnxietyData(selectedRange, selectedDateTimestamp)
+        } else {
+            viewModel.loadAnxietyData(selectedRange, null)
+        }
     }
 
     val xAxisScaleData = when (selectedRange) {
-        "Hour" -> averageAnxietyData.map {
-            Log.d("AnxietyGraph", "Average Anxiety Data: $averageAnxietyData")
-            Log.d("AnxietyGraph", "Hour: ${it.hour}")  // Ganti timestamp dengan hour
-            it.hour.toString()  // Gunakan hour sebagai label
-        }
-        "Day" -> averageAnxietyData.map {
-            Log.d("AnxietyGraph", "Week: ${it.day}")
-            it.day.toString()  // Gunakan week sebagai label
-        }
-        "Week" -> averageAnxietyData.map {
-            Log.d("AnxietyGraph", "Month: ${it.week}")
-            it.week.toString()  // Gunakan month sebagai label
-        }
-        "Month" -> averageAnxietyData.map {
-            Log.d("AnxietyGraph", "Month: ${it.month}")
-            it.month.toString()  // Gunakan month untuk year (untuk data yang ada di bulan Desember)
-        }
+        "Hour" -> averageAnxietyData.map { it.hour.toString() }
+        "Day" -> averageAnxietyData.map { it.day.toString() }
+        "Week" -> averageAnxietyData.map { it.week.toString() }
+        "Month" -> averageAnxietyData.map { it.month.toString() }
         else -> emptyList()
     }
-
-
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         // Tombol untuk memilih rentang waktu
@@ -76,21 +71,58 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
                 RangeSelectorButton(
                     text = range,
                     isSelected = range == selectedRange,
-                    onClick = {
-                        selectedRange = range
-                        viewModel.loadAnxietyData(range)  // Reload data when range is selected
-                    }
+                    onClick = { selectedRange = range }
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Tombol navigasi tanggal hanya untuk "Hour"
+        if (selectedRange == "Hour") {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = {
+                    // Kurangi 1 hari
+                    val calendar = Calendar.getInstance().apply { timeInMillis = selectedDateTimestamp }
+                    calendar.add(Calendar.DAY_OF_YEAR, -1)
+                    selectedDateTimestamp = calendar.timeInMillis
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Previous Day"
+                    )
+                }
+
+                Text(
+                    text = android.text.format.DateFormat.format("dd/MM/yyyy", selectedDateTimestamp).toString(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                IconButton(onClick = {
+                    // Tambah 1 hari
+                    val calendar = Calendar.getInstance().apply { timeInMillis = selectedDateTimestamp }
+                    calendar.add(Calendar.DAY_OF_YEAR, 1)
+                    selectedDateTimestamp = calendar.timeInMillis
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Next Day"
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Menampilkan Bar Graph jika data tersedia
         if (averageAnxietyData.isNotEmpty()) {
             BarGraph(
                 graphBarData = averageAnxietyData.map { it.avgTingkatAnxiety },
-                xAxisScaleData = xAxisScaleData,  // Use modified x-axis labels
+                xAxisScaleData = xAxisScaleData,
                 barData_ = averageAnxietyData.map { it.avgTingkatAnxiety.toFloat() },
                 height = 300.dp,
                 roundType = BarType.TOP_CURVED,
@@ -104,6 +136,10 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
         }
     }
 }
+
+
+
+
 
 
 
