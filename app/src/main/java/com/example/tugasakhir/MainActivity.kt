@@ -33,6 +33,8 @@ import com.example.tugasakhir.ui.theme.Purple500
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     private val hrvViewModel: HrvViewModel by viewModels()
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        Log.d("MainActivity", "MainActivity created and content set")
     }
 
     override fun onResume() {
@@ -60,19 +63,27 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(hrvViewModel: HrvViewModel) {
-    val hrvValue by hrvViewModel.hrvValue.observeAsState("HRV: Waiting...")
+    val hrvValue by hrvViewModel.hrvValue.observeAsState("Anxiety Level: Waiting...")
+    val averageAnxietyPerHour by hrvViewModel.averageAnxietyPerHour.observeAsState(emptyList())
     val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList())
 
     val context = LocalContext.current
 
-    LaunchedEffect(key1 = tingkatAnxietyList) {
-        Log.d("MainScreen", "Tingkat Anxiety List updated.")
+    LaunchedEffect(key1 = averageAnxietyPerHour, key2 = tingkatAnxietyList) {
+        // Log data yang diterima oleh MainScreen
+        Log.d("MainScreen", "Average Anxiety Per Hour: $averageAnxietyPerHour")
+        Log.d("MainScreen", "Tingkat Anxiety List: $tingkatAnxietyList")
+
+        if (averageAnxietyPerHour.isNotEmpty()) {
+            val latestAnxiety = averageAnxietyPerHour.last().avgTingkatAnxiety
+            Log.d("MainScreen", "Latest Anxiety Level: $latestAnxiety")
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("HRV App") },
+                title = { Text("Calm") },
                 actions = {
                     IconButton(onClick = {
                         val intent = Intent(context, BluetoothConfigActivity::class.java)
@@ -92,7 +103,23 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "HRV: $hrvValue", style = MaterialTheme.typography.titleLarge)
+            // Update text to display average anxiety per hour
+            if (averageAnxietyPerHour.isNotEmpty()) {
+                val latestAnxiety = averageAnxietyPerHour.last().avgTingkatAnxiety
+                val formattedAnxiety = String.format("%.2f", latestAnxiety) // Memformat angka ke dua desimal
+
+                // Mendapatkan timestamp saat ini
+                val timestamp = System.currentTimeMillis()
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()) // Format waktu yang diinginkan
+                val formattedTimestamp = dateFormat.format(Date(timestamp))
+
+                Column {
+                    Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = "Last updated: $formattedTimestamp", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
+            } else {
+                Text(text = "Anxiety Level: Waiting...", style = MaterialTheme.typography.titleLarge)
+            }
 
             Button(
                 onClick = {
