@@ -170,7 +170,10 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val dataList = tingkatAnxietyList.map { it.tingkatAnxiety.toFloat() } //awalnya gaada .toFloat
+                // Ambil 10 data terakhir dari tingkatAnxietyList
+                val dataList = tingkatAnxietyList
+                    .takeLast(10)  // Mengambil 10 data terakhir
+                    .map { it.tingkatAnxiety.toFloat() }  // Mengonversi tingkatAnxiety menjadi float
                 Log.d("GraphData", "Raw Data: $dataList")
 
                 if (dataList.isEmpty()) {
@@ -186,7 +189,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                 }
 
                 val finalData = normalizedData.map { it.takeIf { value -> value.isFinite() } ?: 0f }
-                val datesList = List(dataList.size) { it + 1 }
+                val datesList = List(dataList.size) { it + 1 } // Membuat label untuk sumbu x
                 Log.d("GraphData", "Normalized Data: $finalData")
 
                 // Ensure you have BarGraph component available
@@ -201,6 +204,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
                     barArrangement = Arrangement.SpaceEvenly
                 )
             }
+
         }
     }
 }
