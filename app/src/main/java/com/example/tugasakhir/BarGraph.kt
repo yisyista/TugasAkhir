@@ -97,12 +97,12 @@ fun <T> BarGraph(
 
                 val yAxisScaleText = (barData.maxOrNull() ?: 0f) / 3f
 
-                (0..2).forEach { i ->
+                (0..5).forEach { i ->
                     drawContext.canvas.nativeCanvas.apply {
                         drawText(
-                            (0 + 0.5 * i).toString(),
+                            String.format("%.1f", 0 + 0.2 * i),
                             30f,
-                            size.height - yAxisScaleSpacing - i * size.height / 2f,
+                            size.height - yAxisScaleSpacing - i * size.height / 5f,
                             textPaint
                         )
                     }
@@ -112,10 +112,10 @@ fun <T> BarGraph(
                         color = Color.White.toArgb()
                     }
 
-                    yCoordinates.add(size.height - yAxisScaleSpacing - i * size.height / 2f)
+                    yCoordinates.add(size.height - yAxisScaleSpacing - i * size.height / 5f)
                 }
 
-                (1..2).forEach {
+                (1..5).forEach {
                     drawLine(
                         start = Offset(x = yAxisScaleSpacing + 30f, y = yCoordinates[it]),
                         end = Offset(x = size.width, y = yCoordinates[it]),
