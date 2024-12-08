@@ -50,12 +50,14 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     val calendar = remember { Calendar.getInstance() }
     var selectedDate by remember { mutableStateOf(calendar.time) }
     var selectedMonthYear by remember { mutableStateOf(calendar.time) }
+    var selectedYear by remember { mutableStateOf(calendar.time) }
 
     // Refresh data saat range atau tanggal berubah
-    LaunchedEffect(selectedRange, selectedDate, selectedMonthYear) {
+    LaunchedEffect(selectedRange, selectedDate, selectedMonthYear, selectedYear) {
         when (selectedRange) {
             "Hour" -> viewModel.loadAnxietyData(selectedRange, selectedDate)
             "Week" -> viewModel.loadAnxietyData(selectedRange, selectedMonthYear)
+            "Month" -> viewModel.loadAnxietyData(selectedRange, selectedYear)
             else -> viewModel.loadAnxietyData(selectedRange)
         }
     }
@@ -83,36 +85,55 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Kontrol tambahan untuk Hour dan Week
-        if (selectedRange == "Hour") {
-            DateNavigation(
-                date = selectedDate,
-                onPrevious = {
-                    calendar.time = selectedDate
-                    calendar.add(Calendar.DAY_OF_YEAR, -1)
-                    selectedDate = calendar.time
-                },
-                onNext = {
-                    calendar.time = selectedDate
-                    calendar.add(Calendar.DAY_OF_YEAR, 1)
-                    selectedDate = calendar.time
-                }
-            )
-        } else if (selectedRange == "Week") {
-            DateNavigation(
-                date = selectedMonthYear,
-                onPrevious = {
-                    calendar.time = selectedMonthYear
-                    calendar.add(Calendar.MONTH, -1)
-                    selectedMonthYear = calendar.time
-                },
-                onNext = {
-                    calendar.time = selectedMonthYear
-                    calendar.add(Calendar.MONTH, 1)
-                    selectedMonthYear = calendar.time
-                },
-                format = "MMMM yyyy" // Format bulan dan tahun
-            )
+        // Kontrol tambahan untuk Hour, Week, dan Month
+        when (selectedRange) {
+            "Hour" -> {
+                DateNavigation(
+                    date = selectedDate,
+                    onPrevious = {
+                        calendar.time = selectedDate
+                        calendar.add(Calendar.DAY_OF_YEAR, -1)
+                        selectedDate = calendar.time
+                    },
+                    onNext = {
+                        calendar.time = selectedDate
+                        calendar.add(Calendar.DAY_OF_YEAR, 1)
+                        selectedDate = calendar.time
+                    }
+                )
+            }
+            "Week" -> {
+                DateNavigation(
+                    date = selectedMonthYear,
+                    onPrevious = {
+                        calendar.time = selectedMonthYear
+                        calendar.add(Calendar.MONTH, -1)
+                        selectedMonthYear = calendar.time
+                    },
+                    onNext = {
+                        calendar.time = selectedMonthYear
+                        calendar.add(Calendar.MONTH, 1)
+                        selectedMonthYear = calendar.time
+                    },
+                    format = "MMMM yyyy"
+                )
+            }
+            "Month" -> {
+                DateNavigation(
+                    date = selectedYear,
+                    onPrevious = {
+                        calendar.time = selectedYear
+                        calendar.add(Calendar.YEAR, -1)
+                        selectedYear = calendar.time
+                    },
+                    onNext = {
+                        calendar.time = selectedYear
+                        calendar.add(Calendar.YEAR, 1)
+                        selectedYear = calendar.time
+                    },
+                    format = "yyyy"
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -135,6 +156,7 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     }
 }
 
+
 @Composable
 fun DateNavigation(date: Date, onPrevious: () -> Unit, onNext: () -> Unit, format: String = "dd/MM/yyyy") {
     val dateFormat = java.text.SimpleDateFormat(format, Locale.getDefault())
@@ -156,6 +178,8 @@ fun DateNavigation(date: Date, onPrevious: () -> Unit, onNext: () -> Unit, forma
         }
     }
 }
+
+
 
 @Composable
 fun RangeSelectorButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
