@@ -45,6 +45,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
+
+
 class MainActivity : ComponentActivity() {
     private val hrvViewModel: HrvViewModel by viewModels()
     private val REQUEST_CODE_NOTIFICATIONS = 1001
@@ -80,7 +82,7 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "MainActivity created and content set")
 
         // Menjadwalkan Worker untuk pengecekan periodik setiap satu jam
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(1, TimeUnit.MINUTES)
+        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(12, TimeUnit.HOURS)
             .addTag("AnxietyNotificationWorker") // Tambahkan tag unik
             .build()
         Log.d("MainActivity", "Scheduling NotificationWorker with a period of 1 minute.")
