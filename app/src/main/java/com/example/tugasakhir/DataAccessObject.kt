@@ -54,19 +54,14 @@ interface DataAccessObject {
 
     // Rata-rata tingkat anxiety untuk 1 bulan terakhir, dikelompokkan per pekan
     @Query("""
-        SELECT 
-            AVG(tingkatAnxiety) AS avgTingkatAnxiety, 
-            strftime('%W', timestamp / 1000, 'unixepoch', 'localtime') AS week
-        FROM tingkat_anxiety 
-        WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp 
-        GROUP BY week 
-        ORDER BY week
-
-    """)
-    fun getAverageAnxietyByWeek(
-        startTimestamp: Long,
-        endTimestamp: Long
-    ): List<AverageAnxietyData>
+    SELECT AVG(tingkatAnxiety) AS avgTingkatAnxiety, 
+           strftime('%W', timestamp / 1000, 'unixepoch', 'localtime') AS week
+    FROM tingkat_anxiety 
+    WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp
+    GROUP BY week
+    ORDER BY week
+""")
+    suspend fun getAverageAnxietyByWeek(startTimestamp: Long, endTimestamp: Long): List<AverageAnxietyData>
 
     // Rata-rata tingkat anxiety untuk 1 tahun terakhir, dikelompokkan per bulan
     @Query("""

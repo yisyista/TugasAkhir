@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import java.util.Date
+import java.util.Locale
 
 class AnxietyGraphActivity : ComponentActivity() {
     private val viewModel: AnxietyLogViewModel by viewModels {
@@ -45,17 +47,20 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     val averageAnxietyData by viewModel.averageAnxietyData.collectAsState()
     val rangeOptions = listOf("Hour", "Day", "Week", "Month")
     var selectedRange by remember { mutableStateOf("Hour") }
-    var selectedDateTimestamp by remember { mutableStateOf(Calendar.getInstance().timeInMillis) }
+    val calendar = remember { Calendar.getInstance() }
+    var selectedDate by remember { mutableStateOf(calendar.time) }
+    var selectedMonthYear by remember { mutableStateOf(calendar.time) }
 
-    // Memicu pembaruan data setiap kali rentang atau tanggal berubah
-    LaunchedEffect(selectedRange, selectedDateTimestamp) {
-        if (selectedRange == "Hour") {
-            viewModel.loadAnxietyData(selectedRange, selectedDateTimestamp)
-        } else {
-            viewModel.loadAnxietyData(selectedRange, null)
+    // Refresh data saat range atau tanggal berubah
+    LaunchedEffect(selectedRange, selectedDate, selectedMonthYear) {
+        when (selectedRange) {
+            "Hour" -> viewModel.loadAnxietyData(selectedRange, selectedDate)
+            "Week" -> viewModel.loadAnxietyData(selectedRange, selectedMonthYear)
+            else -> viewModel.loadAnxietyData(selectedRange)
         }
     }
 
+    // Data untuk X-Axis
     val xAxisScaleData = when (selectedRange) {
         "Hour" -> averageAnxietyData.map { it.hour.toString() }
         "Day" -> averageAnxietyData.map { it.day.toString() }
@@ -78,45 +83,39 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Tombol navigasi tanggal hanya untuk "Hour"
+        // Kontrol tambahan untuk Hour dan Week
         if (selectedRange == "Hour") {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(onClick = {
-                    // Kurangi 1 hari
-                    val calendar = Calendar.getInstance().apply { timeInMillis = selectedDateTimestamp }
+            DateNavigation(
+                date = selectedDate,
+                onPrevious = {
+                    calendar.time = selectedDate
                     calendar.add(Calendar.DAY_OF_YEAR, -1)
-                    selectedDateTimestamp = calendar.timeInMillis
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Previous Day"
-                    )
-                }
-
-                Text(
-                    text = android.text.format.DateFormat.format("dd/MM/yyyy", selectedDateTimestamp).toString(),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                IconButton(onClick = {
-                    // Tambah 1 hari
-                    val calendar = Calendar.getInstance().apply { timeInMillis = selectedDateTimestamp }
+                    selectedDate = calendar.time
+                },
+                onNext = {
+                    calendar.time = selectedDate
                     calendar.add(Calendar.DAY_OF_YEAR, 1)
-                    selectedDateTimestamp = calendar.timeInMillis
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Next Day"
-                    )
+                    selectedDate = calendar.time
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            )
+        } else if (selectedRange == "Week") {
+            DateNavigation(
+                date = selectedMonthYear,
+                onPrevious = {
+                    calendar.time = selectedMonthYear
+                    calendar.add(Calendar.MONTH, -1)
+                    selectedMonthYear = calendar.time
+                },
+                onNext = {
+                    calendar.time = selectedMonthYear
+                    calendar.add(Calendar.MONTH, 1)
+                    selectedMonthYear = calendar.time
+                },
+                format = "MMMM yyyy" // Format bulan dan tahun
+            )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Menampilkan Bar Graph jika data tersedia
         if (averageAnxietyData.isNotEmpty()) {
@@ -131,17 +130,32 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
                 barArrangement = Arrangement.SpaceEvenly
             )
         } else {
-            // Menampilkan pesan jika data kosong
             Text("Data not available for the selected range", style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
-
-
-
-
-
+@Composable
+fun DateNavigation(date: Date, onPrevious: () -> Unit, onNext: () -> Unit, format: String = "dd/MM/yyyy") {
+    val dateFormat = java.text.SimpleDateFormat(format, Locale.getDefault())
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        IconButton(onClick = onPrevious) {
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Previous")
+        }
+        Text(
+            text = dateFormat.format(date),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        IconButton(onClick = onNext) {
+            Icon(Icons.Filled.ArrowForward, contentDescription = "Next")
+        }
+    }
+}
 
 @Composable
 fun RangeSelectorButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
