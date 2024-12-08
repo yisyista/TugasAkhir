@@ -41,8 +41,12 @@ import kotlin.math.cos
 import kotlin.math.sin
 import com.example.tugasakhir.ui.theme.Purple500
 import com.example.tugasakhir.ui.theme.Purple80
+import android.media.MediaPlayer
+
 
 class BreathingExercise : ComponentActivity() {
+
+    private var mediaPlayer: MediaPlayer? = null  // Tambahkan MediaPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,11 +63,27 @@ class BreathingExercise : ComponentActivity() {
                         handleColor = Purple500,
                         inactiveBarColor = Color.DarkGray,
                         activeBarColor = Purple80,
-                        modifier = Modifier.size(200.dp)
+                        modifier = Modifier.size(200.dp),
+                        onStartStopClick = { start ->
+                            if (start) {
+                                mediaPlayer?.start()  // Mulai musik
+                            } else {
+                                mediaPlayer?.pause()  // Pause musik
+                            }
+                        }
                     )
                 }
             }
         }
+
+        // Inisialisasi MediaPlayer
+        mediaPlayer = MediaPlayer.create(this, R.raw.relax)  // Ganti 'music' dengan nama file MP3 Anda
+        mediaPlayer?.isLooping = true  // Musik akan diputar berulang-ulang jika diinginkan
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()  // Hapus mediaPlayer ketika aktivitas dihancurkan
     }
 }
 
@@ -75,7 +95,8 @@ fun Timer(
     activeBarColor: Color,
     modifier: Modifier = Modifier,
     initialValue: Float = 1f,
-    strokeWidth: Dp = 5.dp
+    strokeWidth: Dp = 5.dp,
+    onStartStopClick: (Boolean) -> Unit // Parameter untuk menerima aksi klik
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     var value by remember { mutableStateOf(initialValue) }
@@ -176,8 +197,6 @@ fun Timer(
             )
         }
 
-
-
         // Tombol untuk mengontrol timer
         Button(
             onClick = {
@@ -189,6 +208,9 @@ fun Timer(
                 } else {
                     isTimerRunning = !isTimerRunning
                 }
+
+                // Memanggil fungsi untuk mengontrol musik
+                onStartStopClick(isTimerRunning)
             },
             modifier = Modifier.align(Alignment.BottomCenter),
             colors = ButtonDefaults.buttonColors(
@@ -208,4 +230,5 @@ fun Timer(
         }
     }
 }
+
 
