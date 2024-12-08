@@ -180,7 +180,6 @@ fun DateNavigation(date: Date, onPrevious: () -> Unit, onNext: () -> Unit, forma
 }
 
 
-
 @Composable
 fun RangeSelectorButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Button(

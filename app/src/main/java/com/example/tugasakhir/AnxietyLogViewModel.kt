@@ -91,6 +91,4 @@ class AnxietyLogViewModel(private val dao: DataAccessObject) : ViewModel() {
             }
         }
     }
-
-
 }
