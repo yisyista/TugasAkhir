@@ -83,5 +83,9 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.0")  // Optional: Jika menggunakan coroutines untuk Room
 
     implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+
+
 
 }

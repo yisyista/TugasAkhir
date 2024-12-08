@@ -69,6 +69,7 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
                 val data = dao.getAverageAnxietyByHour(startTimestamp, endTimestamp)
                 Log.d("HrvViewModel", "Average Anxiety Per Hour: $data")
 
+
                 // Update LiveData di main thread setelah mendapatkan data
                 withContext(Dispatchers.Main) {
                     _averageAnxietyPerHour.postValue(data)
@@ -79,6 +80,7 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
 
 
 

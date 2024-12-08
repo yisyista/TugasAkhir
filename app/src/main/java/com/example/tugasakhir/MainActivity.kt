@@ -1,7 +1,11 @@
 package com.example.tugasakhir
 
 import android.app.Application
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,25 +37,74 @@ import com.example.tugasakhir.ui.theme.Purple500
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     private val hrvViewModel: HrvViewModel by viewModels()
+    private val REQUEST_CODE_NOTIFICATIONS = 1001
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
+
+        /// Meminta izin untuk notifikasi jika SDK >= TIRAMISU (API 33)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    REQUEST_CODE_NOTIFICATIONS
+                )
+            }
+        }
+
+
         setContent {
             TugasAkhirTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen(hrvViewModel)
+                    MainScreen(hrvViewModel, mainActivity = this)
                 }
             }
         }
         Log.d("MainActivity", "MainActivity created and content set")
+
+        // Menjadwalkan Worker untuk pengecekan periodik setiap satu jam
+        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(1, TimeUnit.MINUTES)
+            .addTag("AnxietyNotificationWorker") // Tambahkan tag unik
+            .build()
+        Log.d("MainActivity", "Scheduling NotificationWorker with a period of 1 minute.")
+
+        // Batalkan worker sebelumnya (jika ada) untuk menghindari duplikasi
+        WorkManager.getInstance(this).cancelAllWorkByTag("AnxietyNotificationWorker")
+        WorkManager.getInstance(this).enqueue(workRequest)
+
+        WorkManager.getInstance(this).getWorkInfosByTagLiveData("AnxietyNotificationWorker")
+            .observe(this) { workInfos ->
+                workInfos?.forEach { workInfo ->
+                    Log.d("MainActivity", "WorkInfo state: ${workInfo.state}")
+                }
+            }
+
+
+    }
+
+    // Fungsi untuk menyimpan nilai latestAnxiety ke SharedPreferences
+    fun saveLatestAnxietyToPreferences(latestAnxiety: Float) {
+        val sharedPreferences = getSharedPreferences("anxiety_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putFloat("latestAnxiety", latestAnxiety)
+        editor.apply()
     }
 
     override fun onResume() {
@@ -62,7 +115,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(hrvViewModel: HrvViewModel) {
+fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
     val hrvValue by hrvViewModel.hrvValue.observeAsState("Anxiety Level: Waiting...")
     val averageAnxietyPerHour by hrvViewModel.averageAnxietyPerHour.observeAsState(emptyList())
     val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList())
@@ -70,13 +123,12 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
     val context = LocalContext.current
 
     LaunchedEffect(key1 = averageAnxietyPerHour, key2 = tingkatAnxietyList) {
-        // Log data yang diterima oleh MainScreen
-        Log.d("MainScreen", "Average Anxiety Per Hour: $averageAnxietyPerHour")
-        Log.d("MainScreen", "Tingkat Anxiety List: $tingkatAnxietyList")
-
         if (averageAnxietyPerHour.isNotEmpty()) {
-            val latestAnxiety = averageAnxietyPerHour.last().avgTingkatAnxiety
+            val latestAnxiety = averageAnxietyPerHour.first().avgTingkatAnxiety
             Log.d("MainScreen", "Latest Anxiety Level: $latestAnxiety")
+
+            // Simpan latestAnxiety ke SharedPreferences
+            mainActivity.saveLatestAnxietyToPreferences(latestAnxiety)
         }
     }
 
@@ -105,7 +157,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
         ) {
             // Update text to display average anxiety per hour
             if (averageAnxietyPerHour.isNotEmpty()) {
-                val latestAnxiety = averageAnxietyPerHour.last().avgTingkatAnxiety
+                val latestAnxiety = averageAnxietyPerHour.first().avgTingkatAnxiety
                 val formattedAnxiety = String.format("%.2f", latestAnxiety) // Memformat angka ke dua desimal
 
                 // Mendapatkan timestamp saat ini
@@ -209,6 +261,7 @@ fun MainScreen(hrvViewModel: HrvViewModel) {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
@@ -216,7 +269,11 @@ fun DefaultPreview() {
     val mockHrvViewModel = HrvViewModel(context.applicationContext as Application)
     mockHrvViewModel.updateHrvValue(0f)
 
+    // Dummy mainActivity untuk preview
+    val dummyMainActivity = MainActivity()
+
     TugasAkhirTheme {
-        MainScreen(mockHrvViewModel)
+        MainScreen(mockHrvViewModel, mainActivity = dummyMainActivity)
     }
 }
+
