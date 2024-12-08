@@ -51,6 +51,7 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
     var selectedDate by remember { mutableStateOf(calendar.time) }
     var selectedMonthYear by remember { mutableStateOf(calendar.time) }
     var selectedYear by remember { mutableStateOf(calendar.time) }
+    var dayRangeText by remember { mutableStateOf(getDayRange(calendar)) }
 
     // Refresh data saat range atau tanggal berubah
     LaunchedEffect(selectedRange, selectedDate, selectedMonthYear, selectedYear) {
@@ -58,7 +59,8 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
             "Hour" -> viewModel.loadAnxietyData(selectedRange, selectedDate)
             "Week" -> viewModel.loadAnxietyData(selectedRange, selectedMonthYear)
             "Month" -> viewModel.loadAnxietyData(selectedRange, selectedYear)
-            else -> viewModel.loadAnxietyData(selectedRange)
+            "Day" -> viewModel.loadAnxietyData(selectedRange, selectedDate)
+            //else -> viewModel.loadAnxietyData(selectedRange)
         }
     }
 
@@ -134,6 +136,24 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
                     format = "yyyy"
                 )
             }
+            "Day" -> {
+                DayRangeNavigation(
+                    rangeText = dayRangeText,
+                    onPrevious = {
+                        calendar.time = selectedDate
+                        calendar.add(Calendar.DAY_OF_YEAR, -7)
+                        selectedDate = calendar.time
+                        dayRangeText = getDayRange(calendar)
+                    },
+                    onNext = {
+                        calendar.time = selectedDate
+                        calendar.add(Calendar.DAY_OF_YEAR, 7)
+                        selectedDate = calendar.time
+                        dayRangeText = getDayRange(calendar)
+                    }
+                )
+            }
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -154,6 +174,34 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
             Text("Data not available for the selected range", style = MaterialTheme.typography.bodyLarge)
         }
     }
+}
+
+@Composable
+fun DayRangeNavigation(rangeText: String, onPrevious: () -> Unit, onNext: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        IconButton(onClick = onPrevious) {
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Previous")
+        }
+        Text(
+            text = rangeText,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        IconButton(onClick = onNext) {
+            Icon(Icons.Filled.ArrowForward, contentDescription = "Next")
+        }
+    }
+}
+
+fun getDayRange(calendar: Calendar): String {
+    val startDate = Calendar.getInstance().apply { time = calendar.time; add(Calendar.DAY_OF_YEAR, -7) }
+    val endDate = Calendar.getInstance().apply { time = calendar.time }
+    val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return "${dateFormat.format(startDate.time)} - ${dateFormat.format(endDate.time)}"
 }
 
 

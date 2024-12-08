@@ -49,14 +49,11 @@ class AnxietyLogViewModel(private val dao: DataAccessObject) : ViewModel() {
                     endTimestamp = calendar.timeInMillis
                 }
                 "Day" -> {
-                    // Set to 7 days before the current date
+                    // Logic for Day (7 days)
                     calendar.add(Calendar.DAY_OF_YEAR, -7)
-                    calendar.set(Calendar.HOUR_OF_DAY, 0)
-                    calendar.set(Calendar.MINUTE, 0)
-                    calendar.set(Calendar.SECOND, 0)
-                    calendar.set(Calendar.MILLISECOND, 0)
                     startTimestamp = calendar.timeInMillis
-                    endTimestamp = System.currentTimeMillis()
+                    // Menghitung endTimestamp berdasarkan tanggal yang dipilih
+                    endTimestamp = calendar.timeInMillis + (7 * 24 * 60 * 60 * 1000) // 7 hari setelah start
                 }
                 "Month" -> {
                     // Set to start of the selected year (January 1st)
