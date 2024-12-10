@@ -202,7 +202,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                 Text("Breathing Exercise")
             }
 
-           
+
 
             Column(
                 modifier = Modifier

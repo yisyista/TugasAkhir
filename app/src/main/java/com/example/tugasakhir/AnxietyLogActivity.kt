@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import java.text.SimpleDateFormat
@@ -49,17 +50,24 @@ class AnxietyLogActivity : ComponentActivity() {
 
 @Composable
 fun AnxietyLogScreen(hrvViewModel: HrvViewModel, paddingValues: PaddingValues) {
+    // Mengamati LiveData
     val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList())
+
+    // Menggunakan remember untuk menyimpan data terbalik tanpa merusak observasi
+    val reversedList = remember(tingkatAnxietyList) { tingkatAnxietyList.reversed() }
+
+    // Menampilkan data menggunakan LazyColumn
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)
-        .padding(bottom = paddingValues.calculateBottomPadding())) {  // Padding agar tidak tertutup oleh bottom bar
-        items(tingkatAnxietyList) { anxiety ->
-            val formattedTimestamp = formatTimestamp(anxiety.timestamp) // Format timestamp
+        .padding(bottom = paddingValues.calculateBottomPadding())) {
+        items(reversedList) { anxiety ->
+            val formattedTimestamp = formatTimestamp(anxiety.timestamp)
             Text(text = "Tingkat Anxiety: ${anxiety.tingkatAnxiety}\nTimestamp: $formattedTimestamp \n")
         }
     }
 }
+
 
 fun formatTimestamp(timestamp: Long): String {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
