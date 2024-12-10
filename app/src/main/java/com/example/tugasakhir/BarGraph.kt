@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import com.example.tugasakhir.ui.theme.onSurfaceVariantLight
 
 @Composable
 fun <T> BarGraph(
@@ -202,7 +203,7 @@ fun <T> BarGraph(
                                     )
                                     .width(horizontalLineHeight)
                                     .height(lineHeightXAxis)
-                                    .background(color = Color.Gray)
+                                    .background(onSurfaceVariantLight)
                             )
 
                             Text(
@@ -235,7 +236,7 @@ fun <T> BarGraph(
                         .clip(RoundedCornerShape(2.dp))
                         .fillMaxWidth()
                         .height(horizontalLineHeight)
-                        .background(Color.Gray)
+                        .background(onSurfaceVariantLight)
                 )
 
             }

@@ -35,13 +35,29 @@ import androidx.compose.runtime.livedata.observeAsState
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import com.example.tugasakhir.ui.theme.Purple500
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
@@ -52,9 +68,12 @@ import androidx.work.WorkManager
 import com.example.tugasakhir.ui.theme.errorContainerDark
 import com.example.tugasakhir.ui.theme.errorLight
 import com.example.tugasakhir.ui.theme.onErrorDark
+import com.example.tugasakhir.ui.theme.onTertiaryDark
 import com.example.tugasakhir.ui.theme.primaryContainerLight
 import com.example.tugasakhir.ui.theme.secondaryContainerLight
+import com.example.tugasakhir.ui.theme.secondaryDark
 import com.example.tugasakhir.ui.theme.secondaryLight
+import com.example.tugasakhir.ui.theme.surfaceContainerLight
 import com.example.tugasakhir.ui.theme.tertiaryContainerDark
 import java.util.concurrent.TimeUnit
 
@@ -184,7 +203,9 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                 val formattedTimestamp = dateFormat.format(Date(timestamp))
 
                 Column {
-                    Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    //Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = "Anxiety Level", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    showProgress(latestAnxiety)
                     Text(text = "Last updated: $formattedTimestamp", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.align(Alignment.CenterHorizontally))
 
                     if (latestAnxiety > 0.5 ){
@@ -258,7 +279,72 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
     }
 }
 
+@Preview
+@Composable
+fun showProgress(score : Float =.2f){
 
+
+    val gradient = Brush.linearGradient(listOf(
+        onTertiaryDark,
+        onTertiaryDark,
+        onTertiaryDark,
+        errorLight))
+
+
+    val progressFactor by remember(score) {
+        mutableStateOf(score*1)
+    }
+
+    Row(modifier = Modifier
+        .padding(8.dp)
+        .width(350.dp).height(60.dp).border(
+            width = 4.dp,
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    onTertiaryDark,
+                    onTertiaryDark
+                )
+            ) ,
+            shape = RoundedCornerShape(50.dp)
+        )
+        .clip(
+            RoundedCornerShape(
+                topStartPercent = 50,
+                topEndPercent = 50,
+                bottomEndPercent = 50,
+                bottomStartPercent = 50
+            )
+        )
+        .background(Color.Transparent),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+
+        Button(
+            contentPadding = PaddingValues(1.dp),
+            onClick = { },
+            modifier = Modifier
+                .fillMaxWidth(progressFactor)
+                .background(brush = gradient),
+
+            enabled = false,
+            elevation = null,
+            colors = buttonColors(
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
+            )) {
+
+            Text(text = String.format("%.2f", score),
+                fontSize = 30.sp,
+                modifier = Modifier
+                    .clip(shape = RoundedCornerShape(23.dp))
+                    .fillMaxHeight(0.87f)
+                    .fillMaxWidth()
+                    .padding(7.dp),
+                color=secondaryDark,
+                textAlign = TextAlign.Center)
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
