@@ -1,11 +1,13 @@
 package com.example.tugasakhir
 
 import android.app.Application
+import androidx.compose.material3.*
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +34,13 @@ class AnxietyLogActivity : ComponentActivity() {
         setContent {
             TugasAkhirTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AnxietyLogScreen(hrvViewModel)
+                    // Menambahkan Scaffold dengan BottomNavigationBar
+                    Scaffold(
+                        bottomBar = { BottomNavigationBar(currentScreen = "Log") }  // Menambahkan BottomNavigationBar
+                    ) { paddingValues ->
+                        // Menyusun konten AnxietyLogScreen dengan padding
+                        AnxietyLogScreen(hrvViewModel, paddingValues)
+                    }
                 }
             }
         }
@@ -40,9 +48,12 @@ class AnxietyLogActivity : ComponentActivity() {
 }
 
 @Composable
-fun AnxietyLogScreen(hrvViewModel: HrvViewModel) {
+fun AnxietyLogScreen(hrvViewModel: HrvViewModel, paddingValues: PaddingValues) {
     val tingkatAnxietyList by hrvViewModel.tingkatAnxietyList.observeAsState(emptyList())
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
+    LazyColumn(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)
+        .padding(bottom = paddingValues.calculateBottomPadding())) {  // Padding agar tidak tertutup oleh bottom bar
         items(tingkatAnxietyList) { anxiety ->
             val formattedTimestamp = formatTimestamp(anxiety.timestamp) // Format timestamp
             Text(text = "Tingkat Anxiety: ${anxiety.tingkatAnxiety}\nTimestamp: $formattedTimestamp \n")
@@ -51,7 +62,7 @@ fun AnxietyLogScreen(hrvViewModel: HrvViewModel) {
 }
 
 fun formatTimestamp(timestamp: Long): String {
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy 'pada pukul' HH:mm:ss", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
     val date = Date(timestamp)
     return dateFormat.format(date)
 }
@@ -61,6 +72,7 @@ fun formatTimestamp(timestamp: Long): String {
 fun PreviewAnxietyLogScreen() {
     val mockHrvViewModel = HrvViewModel(Application()) // Gunakan Application dari LocalContext
     TugasAkhirTheme {
-        AnxietyLogScreen(mockHrvViewModel)
+        // Tambahkan padding untuk memastikan tampilan sesuai
+        AnxietyLogScreen(mockHrvViewModel, PaddingValues())
     }
 }

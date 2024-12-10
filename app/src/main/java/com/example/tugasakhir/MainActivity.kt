@@ -202,27 +202,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                 Text("Breathing Exercise")
             }
 
-            // Button untuk membuka halaman Anxiety Log
-            Button(
-                onClick = {
-                    val intent = Intent(context, AnxietyLogActivity::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("View Anxiety Log")
-            }
-
-            // Button untuk membuka halaman Anxiety Graph
-            Button(
-                onClick = {
-                    val intent = Intent(context, AnxietyGraphActivity::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("View Anxiety Graph")
-            }
+           
 
             Column(
                 modifier = Modifier
