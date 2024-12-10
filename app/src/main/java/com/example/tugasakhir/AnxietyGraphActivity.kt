@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import com.example.tugasakhir.ui.theme.errorLight
 import com.example.tugasakhir.ui.theme.onPrimaryDark
 import com.example.tugasakhir.ui.theme.onSurfaceVariantDark
 import com.example.tugasakhir.ui.theme.outlineDark
@@ -250,7 +249,7 @@ fun RangeSelectorButton(text: String, isSelected: Boolean, onClick: () -> Unit) 
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) errorLight else onSurfaceVariantDark
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else onSurfaceVariantDark
         ),
         modifier = Modifier.padding(4.dp)
     ) {

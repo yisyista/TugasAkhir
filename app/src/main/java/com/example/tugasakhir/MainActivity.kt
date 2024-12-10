@@ -35,6 +35,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import com.example.tugasakhir.ui.theme.Purple500
 import android.util.Log
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +50,7 @@ import java.util.*
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.tugasakhir.ui.theme.errorContainerDark
+import com.example.tugasakhir.ui.theme.errorLight
 import com.example.tugasakhir.ui.theme.onErrorDark
 import com.example.tugasakhir.ui.theme.primaryContainerLight
 import com.example.tugasakhir.ui.theme.secondaryContainerLight
@@ -193,7 +195,8 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                                 val intent = Intent(context, BreathingExercise::class.java)
                                 context.startActivity(intent)
                             },
-                            modifier = Modifier.padding(top = 16.dp).align(Alignment.CenterHorizontally)
+                            modifier = Modifier.padding(top = 16.dp).align(Alignment.CenterHorizontally),
+                            colors = ButtonDefaults.buttonColors(containerColor = errorLight)
                         ) {
                             Text("Try Breathing Exercise")
                         }
