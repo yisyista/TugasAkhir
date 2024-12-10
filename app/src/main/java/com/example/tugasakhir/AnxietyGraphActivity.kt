@@ -21,6 +21,14 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.example.tugasakhir.ui.theme.errorLight
+import com.example.tugasakhir.ui.theme.onPrimaryDark
+import com.example.tugasakhir.ui.theme.onSurfaceVariantDark
+import com.example.tugasakhir.ui.theme.outlineDark
+import com.example.tugasakhir.ui.theme.secondaryContainerLight
+import com.example.tugasakhir.ui.theme.secondaryLight
+import com.example.tugasakhir.ui.theme.surfaceContainerHighestLight
+import com.example.tugasakhir.ui.theme.tertiaryContainerDark
 import java.util.Date
 import java.util.Locale
 
@@ -175,7 +183,7 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
                     height = 300.dp,
                     roundType = BarType.TOP_CURVED,
                     barWidth = 20.dp,
-                    barColor = Purple500,
+                    barColor = secondaryContainerLight,
                     barArrangement = Arrangement.SpaceEvenly
                 )
             } else {
@@ -242,7 +250,7 @@ fun RangeSelectorButton(text: String, isSelected: Boolean, onClick: () -> Unit) 
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+            containerColor = if (isSelected) errorLight else onSurfaceVariantDark
         ),
         modifier = Modifier.padding(4.dp)
     ) {

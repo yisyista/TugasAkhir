@@ -47,6 +47,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.darkColorScheme
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
+import com.example.tugasakhir.ui.theme.errorLight
+import com.example.tugasakhir.ui.theme.inverseOnSurfaceDark
+import com.example.tugasakhir.ui.theme.inversePrimaryDark
+import com.example.tugasakhir.ui.theme.onErrorDark
+import com.example.tugasakhir.ui.theme.onSurfaceDark
+import com.example.tugasakhir.ui.theme.tertiaryContainerLight
+import com.example.tugasakhir.ui.theme.tertiaryLight
 
 
 class BreathingExercise : ComponentActivity() {
@@ -60,7 +67,7 @@ class BreathingExercise : ComponentActivity() {
             TugasAkhirTheme() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF101010) // Tetap menggunakan warna gelap
+                    color = Color(0xFF101010) //
                 ) {
                     Scaffold(
                         bottomBar = { BottomNavigationBar(currentScreen = "Breathing") }
@@ -73,9 +80,9 @@ class BreathingExercise : ComponentActivity() {
                         ) {
                             Timer(
                                 totalTime = 100L * 1000L,
-                                handleColor = Purple500,
-                                inactiveBarColor = Color.DarkGray,
-                                activeBarColor = Purple80,
+                                handleColor = tertiaryLight,
+                                inactiveBarColor = onSurfaceDark,
+                                activeBarColor = tertiaryContainerLight,
                                 modifier = Modifier.size(200.dp),
                                 onStartStopClick = { start ->
                                     if (start) {
@@ -200,7 +207,7 @@ fun Timer(
                     text = currentPhase,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = Color.Black,
                     textAlign = TextAlign.Center
                 )
             }
@@ -210,7 +217,7 @@ fun Timer(
                 text = phaseCountdown.toString(),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.LightGray
+                color = inverseOnSurfaceDark
             )
         }
 
@@ -233,9 +240,9 @@ fun Timer(
             colors = ButtonDefaults.buttonColors(
                 containerColor =
                 if (!isTimerRunning || currentTime <= 0L) {
-                    Color.Green
+                    inversePrimaryDark
                 } else {
-                    Color.Red
+                    errorLight
                 }
             )
         ) {

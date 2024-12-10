@@ -63,7 +63,7 @@ fun AnxietyLogScreen(hrvViewModel: HrvViewModel, paddingValues: PaddingValues) {
         .padding(bottom = paddingValues.calculateBottomPadding())) {
         items(reversedList) { anxiety ->
             val formattedTimestamp = formatTimestamp(anxiety.timestamp)
-            Text(text = "Tingkat Anxiety: ${anxiety.tingkatAnxiety}\nTimestamp: $formattedTimestamp \n")
+            Text(text = "Anxiety Level: ${anxiety.tingkatAnxiety}\nTimestamp: $formattedTimestamp \n")
         }
     }
 }

@@ -39,6 +39,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -47,6 +48,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.tugasakhir.ui.theme.errorContainerDark
+import com.example.tugasakhir.ui.theme.onErrorDark
+import com.example.tugasakhir.ui.theme.primaryContainerLight
+import com.example.tugasakhir.ui.theme.secondaryContainerLight
+import com.example.tugasakhir.ui.theme.secondaryLight
+import com.example.tugasakhir.ui.theme.tertiaryContainerDark
 import java.util.concurrent.TimeUnit
 
 
@@ -177,30 +184,28 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                 Column {
                     Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
                     Text(text = "Last updated: $formattedTimestamp", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.align(Alignment.CenterHorizontally))
+
+                    if (latestAnxiety > 0.5 ){
+                        Text(text = "\nYour anxiety level is high. Let's manage your anxiety by doing some relaxation", textAlign = TextAlign.Center)
+
+                        Button(
+                            onClick = {
+                                val intent = Intent(context, BreathingExercise::class.java)
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.padding(top = 16.dp).align(Alignment.CenterHorizontally)
+                        ) {
+                            Text("Try Breathing Exercise")
+                        }
+                    }
+
+
                 }
             } else {
                 Text(text = "Anxiety Level: Waiting...", style = MaterialTheme.typography.titleLarge)
             }
 
-            Button(
-                onClick = {
-                    val intent = Intent(context, PredictionActivity::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Open Prediction")
-            }
-
-            Button(
-                onClick = {
-                    val intent = Intent(context, BreathingExercise::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Breathing Exercise")
-            }
+            //bisa tambah button di sini
 
 
 
@@ -241,7 +246,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                     height = 300.dp,
                     roundType = BarType.TOP_CURVED,
                     barWidth = 20.dp,
-                    barColor = Purple500,
+                    barColor = secondaryContainerLight,
                     barArrangement = Arrangement.SpaceEvenly
                 )
             }
@@ -249,6 +254,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
         }
     }
 }
+
 
 
 @Preview(showBackground = true)

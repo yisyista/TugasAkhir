@@ -70,7 +70,7 @@ fun <T> BarGraph(
     val density = LocalDensity.current
     val textPaint = remember(density) {
         Paint().apply {
-            color = Color.White.hashCode()
+            color = Color.Black.hashCode()
             var textAlign = Paint.Align.CENTER
             var textSize = density.run { 16.sp.toPx() }
         }
@@ -109,7 +109,7 @@ fun <T> BarGraph(
 
                     textPaint.apply {
                         textSize = 14.sp.toPx()
-                        color = Color.White.toArgb()
+                        color = Color.Black.toArgb()
                     }
 
                     yCoordinates.add(size.height - yAxisScaleSpacing - i * size.height / 5f)
@@ -211,7 +211,7 @@ fun <T> BarGraph(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 textAlign = TextAlign.Center,
-                                color = Color.White
+                                color = Color.Black
                             )
 
                         }
