@@ -204,12 +204,12 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
 
                 Column {
                     //Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
-                    Text(text = "Anxiety Level", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = "Anxiety Level", fontSize = 18.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
                     showProgress(latestAnxiety)
                     Text(text = "Last updated: $formattedTimestamp", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.align(Alignment.CenterHorizontally))
 
                     if (latestAnxiety > 0.5 ){
-                        Text(text = "\nYour anxiety level is high. Let's manage your anxiety by doing some relaxation", textAlign = TextAlign.Center)
+                        Text(text = "\nYour anxiety level is high. Let's manage your anxiety by doing some relaxation", fontSize = 16.sp, textAlign = TextAlign.Center)
 
                         Button(
                             onClick = {
@@ -333,7 +333,9 @@ fun showProgress(score : Float =.2f){
                 disabledContainerColor = Color.Transparent
             )) {
 
-            Text(text = String.format("%.2f", score),
+            val score_percent = score*100
+
+            Text(text = String.format("%.0f", score_percent) + "%" ,
                 fontSize = 30.sp,
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(23.dp))
