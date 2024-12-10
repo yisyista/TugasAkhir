@@ -73,6 +73,7 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
         else -> emptyList()
     }
 
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         // Tombol untuk memilih rentang waktu
         Row(horizontalArrangement = Arrangement.SpaceEvenly) {

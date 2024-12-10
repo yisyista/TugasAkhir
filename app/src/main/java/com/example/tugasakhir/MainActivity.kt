@@ -35,10 +35,14 @@ import androidx.compose.runtime.livedata.observeAsState
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 import com.example.tugasakhir.ui.theme.Purple500
 import android.util.Log
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.work.PeriodicWorkRequestBuilder
@@ -115,6 +119,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
@@ -147,7 +153,8 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                     }
                 }
             )
-        }
+        },
+                bottomBar = { BottomNavigationBar(currentScreen = "Main") }
     ) { innerPadding ->
         Column(
             modifier = Modifier

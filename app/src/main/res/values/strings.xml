@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Tugas Akhir</string>
+    <string name="main">Home</string>
+    <string name="breathing">Breathing Exercise</string>
+    <string name="graph">Graph</string>
+    <string name="log">Log</string>
+
 </resources>

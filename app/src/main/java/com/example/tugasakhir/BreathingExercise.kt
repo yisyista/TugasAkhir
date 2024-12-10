@@ -42,6 +42,11 @@ import kotlin.math.sin
 import com.example.tugasakhir.ui.theme.Purple500
 import com.example.tugasakhir.ui.theme.Purple80
 import android.media.MediaPlayer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.darkColorScheme
+import com.example.tugasakhir.ui.theme.TugasAkhirTheme
 
 
 class BreathingExercise : ComponentActivity() {
@@ -51,33 +56,43 @@ class BreathingExercise : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Surface(
-                color = Color(0xFF101010),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center
+            // Gunakan MaterialTheme untuk memastikan tema gelap diterapkan
+            TugasAkhirTheme() {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color(0xFF101010) // Tetap menggunakan warna gelap
                 ) {
-                    Timer(
-                        totalTime = 100L * 1000L,
-                        handleColor = Purple500,
-                        inactiveBarColor = Color.DarkGray,
-                        activeBarColor = Purple80,
-                        modifier = Modifier.size(200.dp),
-                        onStartStopClick = { start ->
-                            if (start) {
-                                mediaPlayer?.start()  // Mulai musik
-                            } else {
-                                mediaPlayer?.pause()  // Pause musik
-                            }
+                    Scaffold(
+                        bottomBar = { BottomNavigationBar(currentScreen = "Breathing") }
+                    ) { paddingValues ->
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues) // Padding agar tidak tertutup BottomNavigationBar
+                        ) {
+                            Timer(
+                                totalTime = 100L * 1000L,
+                                handleColor = Purple500,
+                                inactiveBarColor = Color.DarkGray,
+                                activeBarColor = Purple80,
+                                modifier = Modifier.size(200.dp),
+                                onStartStopClick = { start ->
+                                    if (start) {
+                                        mediaPlayer?.start()  // Mulai musik
+                                    } else {
+                                        mediaPlayer?.pause()  // Pause musik
+                                    }
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }
 
         // Inisialisasi MediaPlayer
-        mediaPlayer = MediaPlayer.create(this, R.raw.relax)  // Ganti 'music' dengan nama file MP3 Anda
+        mediaPlayer = MediaPlayer.create(this, R.raw.relax)  // Ganti 'relax' dengan nama file MP3 Anda
         mediaPlayer?.isLooping = true  // Musik akan diputar berulang-ulang jika diinginkan
     }
 
@@ -86,6 +101,8 @@ class BreathingExercise : ComponentActivity() {
         mediaPlayer?.release()  // Hapus mediaPlayer ketika aktivitas dihancurkan
     }
 }
+
+
 
 @Composable
 fun Timer(
