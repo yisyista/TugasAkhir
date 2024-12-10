@@ -73,106 +73,114 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
         else -> emptyList()
     }
 
+    // Scaffold untuk menata tampilan dengan BottomNavigationBar di bawah
+    Scaffold(
+        bottomBar = { BottomNavigationBar(currentScreen = "Graph") }  // Menambahkan BottomNavigationBar
+    ) { paddingValues ->
+        // Konten utama, seperti grafik dan kontrol waktu
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .padding(bottom = paddingValues.calculateBottomPadding())) {
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // Tombol untuk memilih rentang waktu
-        Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-            rangeOptions.forEach { range ->
-                RangeSelectorButton(
-                    text = range,
-                    isSelected = range == selectedRange,
-                    onClick = { selectedRange = range }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Kontrol tambahan untuk Hour, Week, dan Month
-        when (selectedRange) {
-            "Hour" -> {
-                DateNavigation(
-                    date = selectedDate,
-                    onPrevious = {
-                        calendar.time = selectedDate
-                        calendar.add(Calendar.DAY_OF_YEAR, -1)
-                        selectedDate = calendar.time
-                    },
-                    onNext = {
-                        calendar.time = selectedDate
-                        calendar.add(Calendar.DAY_OF_YEAR, 1)
-                        selectedDate = calendar.time
-                    }
-                )
-            }
-            "Week" -> {
-                DateNavigation(
-                    date = selectedMonthYear,
-                    onPrevious = {
-                        calendar.time = selectedMonthYear
-                        calendar.add(Calendar.MONTH, -1)
-                        selectedMonthYear = calendar.time
-                    },
-                    onNext = {
-                        calendar.time = selectedMonthYear
-                        calendar.add(Calendar.MONTH, 1)
-                        selectedMonthYear = calendar.time
-                    },
-                    format = "MMMM yyyy"
-                )
-            }
-            "Month" -> {
-                DateNavigation(
-                    date = selectedYear,
-                    onPrevious = {
-                        calendar.time = selectedYear
-                        calendar.add(Calendar.YEAR, -1)
-                        selectedYear = calendar.time
-                    },
-                    onNext = {
-                        calendar.time = selectedYear
-                        calendar.add(Calendar.YEAR, 1)
-                        selectedYear = calendar.time
-                    },
-                    format = "yyyy"
-                )
-            }
-            "Day" -> {
-                DayRangeNavigation(
-                    rangeText = dayRangeText,
-                    onPrevious = {
-                        calendar.time = selectedDate
-                        calendar.add(Calendar.DAY_OF_YEAR, -7)
-                        selectedDate = calendar.time
-                        dayRangeText = getDayRange(calendar)
-                    },
-                    onNext = {
-                        calendar.time = selectedDate
-                        calendar.add(Calendar.DAY_OF_YEAR, 7)
-                        selectedDate = calendar.time
-                        dayRangeText = getDayRange(calendar)
-                    }
-                )
+            // Tombol untuk memilih rentang waktu
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                rangeOptions.forEach { range ->
+                    RangeSelectorButton(
+                        text = range,
+                        isSelected = range == selectedRange,
+                        onClick = { selectedRange = range }
+                    )
+                }
             }
 
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // Kontrol tambahan untuk Hour, Week, dan Month
+            when (selectedRange) {
+                "Hour" -> {
+                    DateNavigation(
+                        date = selectedDate,
+                        onPrevious = {
+                            calendar.time = selectedDate
+                            calendar.add(Calendar.DAY_OF_YEAR, -1)
+                            selectedDate = calendar.time
+                        },
+                        onNext = {
+                            calendar.time = selectedDate
+                            calendar.add(Calendar.DAY_OF_YEAR, 1)
+                            selectedDate = calendar.time
+                        }
+                    )
+                }
+                "Week" -> {
+                    DateNavigation(
+                        date = selectedMonthYear,
+                        onPrevious = {
+                            calendar.time = selectedMonthYear
+                            calendar.add(Calendar.MONTH, -1)
+                            selectedMonthYear = calendar.time
+                        },
+                        onNext = {
+                            calendar.time = selectedMonthYear
+                            calendar.add(Calendar.MONTH, 1)
+                            selectedMonthYear = calendar.time
+                        },
+                        format = "MMMM yyyy"
+                    )
+                }
+                "Month" -> {
+                    DateNavigation(
+                        date = selectedYear,
+                        onPrevious = {
+                            calendar.time = selectedYear
+                            calendar.add(Calendar.YEAR, -1)
+                            selectedYear = calendar.time
+                        },
+                        onNext = {
+                            calendar.time = selectedYear
+                            calendar.add(Calendar.YEAR, 1)
+                            selectedYear = calendar.time
+                        },
+                        format = "yyyy"
+                    )
+                }
+                "Day" -> {
+                    DayRangeNavigation(
+                        rangeText = dayRangeText,
+                        onPrevious = {
+                            calendar.time = selectedDate
+                            calendar.add(Calendar.DAY_OF_YEAR, -7)
+                            selectedDate = calendar.time
+                            dayRangeText = getDayRange(calendar)
+                        },
+                        onNext = {
+                            calendar.time = selectedDate
+                            calendar.add(Calendar.DAY_OF_YEAR, 7)
+                            selectedDate = calendar.time
+                            dayRangeText = getDayRange(calendar)
+                        }
+                    )
+                }
+            }
 
-        // Menampilkan Bar Graph jika data tersedia
-        if (averageAnxietyData.isNotEmpty()) {
-            BarGraph(
-                graphBarData = averageAnxietyData.map { it.avgTingkatAnxiety },
-                xAxisScaleData = xAxisScaleData,
-                barData_ = averageAnxietyData.map { it.avgTingkatAnxiety.toFloat() },
-                height = 300.dp,
-                roundType = BarType.TOP_CURVED,
-                barWidth = 20.dp,
-                barColor = Purple500,
-                barArrangement = Arrangement.SpaceEvenly
-            )
-        } else {
-            Text("Data not available for the selected range", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Menampilkan Bar Graph jika data tersedia
+            if (averageAnxietyData.isNotEmpty()) {
+                BarGraph(
+                    graphBarData = averageAnxietyData.map { it.avgTingkatAnxiety },
+                    xAxisScaleData = xAxisScaleData,
+                    barData_ = averageAnxietyData.map { it.avgTingkatAnxiety.toFloat() },
+                    height = 300.dp,
+                    roundType = BarType.TOP_CURVED,
+                    barWidth = 20.dp,
+                    barColor = Purple500,
+                    barArrangement = Arrangement.SpaceEvenly
+                )
+            } else {
+                Text("Data not available for the selected range", style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }
