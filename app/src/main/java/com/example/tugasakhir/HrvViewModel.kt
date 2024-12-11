@@ -45,8 +45,9 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
                 dao.getAllTingkatAnxiety() // Flow dari database
                     .flowOn(Dispatchers.IO) // Menjalankan Flow di thread IO
                     .collect { anxietyList ->
-                        Log.d("HrvViewModel", "Tingkat Anxiety Data: $anxietyList")
+                        //Log.d("HrvViewModel", "Tingkat Anxiety Data: $anxietyList")
                         _tingkatAnxietyList.postValue(anxietyList)
+                        getAverageAnxietyByHour() // Mulai mengambil rata-rata anxiety per jam
                     }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -56,8 +57,10 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getAverageAnxietyByHour() {
+        Log.d("HrvViewModel", "Starting coroutine")
         // Pastikan ini dilakukan di viewModelScope untuk menghindari crash pada UI thread
         viewModelScope.launch(Dispatchers.IO) { // Pindahkan ke thread IO untuk operasi database
+            Log.d("HrvViewModel", "Inside coroutine on Dispatchers.IO")
             try {
                 // Mengambil data rata-rata anxiety per jam dari database
                 val currentTimestamp = System.currentTimeMillis()
@@ -92,6 +95,7 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
     // Optional: Fungsi untuk memulai pengambilan data sekali saja saat ViewModel diinisialisasi
     init {
         observeAnxietyLevels() // Mulai mengamati data saat ViewModel pertama kali diinisialisasi
-        getAverageAnxietyByHour() // Mulai mengambil rata-rata anxiety per jam
+
+        Log.d("HrvViewModel", "init block called")
     }
 }

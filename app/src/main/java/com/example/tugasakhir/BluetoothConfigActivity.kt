@@ -198,7 +198,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                     Text(
                         if (scanning && !isConnected) "Scanning Devices..." else
                             if (isBluetoothOn && !isConnected) "Start Scanning"
-                            else if (isConnected) "Connected"
+                            else if (isConnected) "Disconnect"
                             else "Turn On Bluetooth"
 
                     )
