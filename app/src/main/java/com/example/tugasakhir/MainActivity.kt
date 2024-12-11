@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
+import androidx.work.OneTimeWorkRequestBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.work.PeriodicWorkRequestBuilder
@@ -127,10 +128,10 @@ class MainActivity : ComponentActivity() {
 
                 if (!isWorkerActive) {
                     // Jika worker belum ada, jadwalkan worker baru
-                    val workRequest =
-                        PeriodicWorkRequestBuilder<NotificationWorker>(1, TimeUnit.HOURS)
-                            .addTag("AnxietyNotificationWorker") // Tambahkan tag unik
-                            .build()
+                    val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
+                        .setInitialDelay(12, TimeUnit.HOURS)
+                        .addTag("AnxietyNotificationWorker")
+                        .build()
                     Log.d(
                         "MainActivity",
                         "Scheduling NotificationWorker with a period of 12 hours."
