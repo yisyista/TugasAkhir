@@ -76,6 +76,8 @@ import com.example.tugasakhir.ui.theme.secondaryLight
 import com.example.tugasakhir.ui.theme.surfaceContainerLight
 import com.example.tugasakhir.ui.theme.tertiaryContainerDark
 import java.util.concurrent.TimeUnit
+import androidx.work.WorkInfo
+
 
 
 
@@ -91,7 +93,8 @@ class MainActivity : ComponentActivity() {
         /// Meminta izin untuk notifikasi jika SDK >= TIRAMISU (API 33)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+            ) {
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.POST_NOTIFICATIONS),
@@ -113,27 +116,33 @@ class MainActivity : ComponentActivity() {
         }
         Log.d("MainActivity", "MainActivity created and content set")
 
-        // Menjadwalkan Worker untuk pengecekan periodik setiap satu jam
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(12, TimeUnit.HOURS)
-            .addTag("AnxietyNotificationWorker") // Tambahkan tag unik
-            .build()
-        Log.d("MainActivity", "Scheduling NotificationWorker with a period of 12 hour.")
+        val workManager = WorkManager.getInstance(this)
 
-        // Batalkan worker sebelumnya (jika ada) untuk menghindari duplikasi
-        WorkManager.getInstance(this).cancelAllWorkByTag("AnxietyNotificationWorker")
-        WorkManager.getInstance(this).enqueue(workRequest)
-
-        WorkManager.getInstance(this).getWorkInfosByTagLiveData("AnxietyNotificationWorker")
+// Cek apakah worker sudah ada sebelum menjadwalkannya
+        workManager.getWorkInfosByTagLiveData("AnxietyNotificationWorker")
             .observe(this) { workInfos ->
-                workInfos?.forEach { workInfo ->
-                    Log.d("MainActivity", "WorkInfo state: ${workInfo.state}")
+                val isWorkerActive = workInfos?.any {
+                    it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING
+                } ?: false
+
+                if (!isWorkerActive) {
+                    // Jika worker belum ada, jadwalkan worker baru
+                    val workRequest =
+                        PeriodicWorkRequestBuilder<NotificationWorker>(1, TimeUnit.HOURS)
+                            .addTag("AnxietyNotificationWorker") // Tambahkan tag unik
+                            .build()
+                    Log.d(
+                        "MainActivity",
+                        "Scheduling NotificationWorker with a period of 12 hours."
+                    )
+                    workManager.enqueue(workRequest)
+                } else {
+                    Log.d("MainActivity", "NotificationWorker is already active. Skipping enqueue.")
                 }
             }
-
-
     }
 
-    // Fungsi untuk menyimpan nilai latestAnxiety ke SharedPreferences
+        // Fungsi untuk menyimpan nilai latestAnxiety ke SharedPreferences
     fun saveLatestAnxietyToPreferences(latestAnxiety: Float) {
         val sharedPreferences = getSharedPreferences("anxiety_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
