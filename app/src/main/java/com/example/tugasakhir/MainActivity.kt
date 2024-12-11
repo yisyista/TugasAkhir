@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
         val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(12, TimeUnit.HOURS)
             .addTag("AnxietyNotificationWorker") // Tambahkan tag unik
             .build()
-        Log.d("MainActivity", "Scheduling NotificationWorker with a period of 1 minute.")
+        Log.d("MainActivity", "Scheduling NotificationWorker with a period of 12 hour.")
 
         // Batalkan worker sebelumnya (jika ada) untuk menghindari duplikasi
         WorkManager.getInstance(this).cancelAllWorkByTag("AnxietyNotificationWorker")
@@ -160,8 +160,9 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
 
     LaunchedEffect(key1 = averageAnxietyPerHour, key2 = tingkatAnxietyList) {
         if (averageAnxietyPerHour.isNotEmpty()) {
-            val latestAnxiety = averageAnxietyPerHour.first().avgTingkatAnxiety
-            Log.d("MainScreen", "Latest Anxiety Level: $latestAnxiety")
+            val latestAnxiety = averageAnxietyPerHour.last().avgTingkatAnxiety
+            Log.d("MainScreen", "Latest Anxiety Level: $averageAnxietyPerHour")
+            Log.d("MainScreen", "Last Anxiety Level: $latestAnxiety")
 
             // Simpan latestAnxiety ke SharedPreferences
             mainActivity.saveLatestAnxietyToPreferences(latestAnxiety)
@@ -194,7 +195,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
         ) {
             // Update text to display average anxiety per hour
             if (averageAnxietyPerHour.isNotEmpty()) {
-                val latestAnxiety = averageAnxietyPerHour.first().avgTingkatAnxiety
+                val latestAnxiety = averageAnxietyPerHour.last().avgTingkatAnxiety
                 val formattedAnxiety = String.format("%.2f", latestAnxiety) // Memformat angka ke dua desimal
 
                 // Mendapatkan timestamp saat ini
@@ -204,7 +205,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
 
                 Column {
                     //Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
-                    Text(text = "Anxiety Level", fontSize = 18.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = "Anxiety Level: $formattedAnxiety", fontSize = 18.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
                     showProgress(latestAnxiety)
                     Text(text = "Last updated: $formattedTimestamp", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.align(Alignment.CenterHorizontally))
 

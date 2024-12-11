@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 
 class HrvViewModel(application: Application) : AndroidViewModel(application) {
@@ -60,7 +61,14 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 // Mengambil data rata-rata anxiety per jam dari database
                 val currentTimestamp = System.currentTimeMillis()
-                val startTimestamp = currentTimestamp - 24 * 60 * 60 * 1000 // 24 jam yang lalu
+                //val startTimestamp = currentTimestamp - 24 * 60 * 60 * 1000 // 24 jam yang lalu
+
+                val calendar = Calendar.getInstance()
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startTimestamp = calendar.timeInMillis // Awal hari ini (00:00)
                 val endTimestamp = currentTimestamp
 
                 Log.d("HrvViewModel", "Start Timestamp: $startTimestamp, End Timestamp: $endTimestamp")
@@ -68,7 +76,6 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
                 // Pastikan Anda memanggil DAO pada background thread
                 val data = dao.getAverageAnxietyByHour(startTimestamp, endTimestamp)
                 Log.d("HrvViewModel", "Average Anxiety Per Hour: $data")
-
 
                 // Update LiveData di main thread setelah mendapatkan data
                 withContext(Dispatchers.Main) {
@@ -80,9 +87,6 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
-
-
 
 
     // Optional: Fungsi untuk memulai pengambilan data sekali saja saat ViewModel diinisialisasi
