@@ -79,7 +79,7 @@ class BreathingExercise : ComponentActivity() {
                                 .padding(paddingValues) // Padding agar tidak tertutup BottomNavigationBar
                         ) {
                             Timer(
-                                totalTime = 100L * 1000L,
+                                totalTime = 95L * 1000L,
                                 handleColor = tertiaryLight,
                                 inactiveBarColor = onSurfaceDark,
                                 activeBarColor = tertiaryContainerLight,
@@ -90,6 +90,9 @@ class BreathingExercise : ComponentActivity() {
                                     } else {
                                         mediaPlayer?.pause()  // Pause musik
                                     }
+                                },
+                                onFinish = {
+                                    mediaPlayer?.pause()  // Musik berhenti ketika timer selesai
                                 }
                             )
                         }
@@ -111,6 +114,7 @@ class BreathingExercise : ComponentActivity() {
 
 
 
+
 @Composable
 fun Timer(
     totalTime: Long,
@@ -120,7 +124,8 @@ fun Timer(
     modifier: Modifier = Modifier,
     initialValue: Float = 1f,
     strokeWidth: Dp = 5.dp,
-    onStartStopClick: (Boolean) -> Unit // Parameter untuk menerima aksi klik
+    onStartStopClick: (Boolean) -> Unit,  // Parameter untuk menerima aksi klik
+    onFinish: () -> Unit  // Callback untuk memberitahukan timer selesai
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     var value by remember { mutableStateOf(initialValue) }
@@ -156,6 +161,11 @@ fun Timer(
             }
 
             value = currentTime / totalTime.toFloat()
+        }
+
+        // Jika timer habis, panggil onFinish untuk menghentikan musik
+        if (currentTime <= 0L) {
+            onFinish()  // Panggil callback untuk memberitahukan timer selesai
         }
     }
 
@@ -254,5 +264,6 @@ fun Timer(
         }
     }
 }
+
 
 
