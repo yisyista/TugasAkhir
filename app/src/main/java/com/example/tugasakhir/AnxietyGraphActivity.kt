@@ -5,8 +5,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +24,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.example.tugasakhir.ui.theme.errorContainerLight
+import com.example.tugasakhir.ui.theme.errorLight
+import com.example.tugasakhir.ui.theme.onErrorContainerLight
+import com.example.tugasakhir.ui.theme.onErrorLight
 import com.example.tugasakhir.ui.theme.onPrimaryDark
 import com.example.tugasakhir.ui.theme.onSurfaceVariantDark
 import com.example.tugasakhir.ui.theme.outlineDark
@@ -80,6 +87,23 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
         else -> emptyList()
     }
 
+    // Cek apakah ada 3 hari berturut-turut dengan anxiety > 0.5
+    val showWarningMessage = if (selectedRange == "Day") {
+        val anxietyOverThreshold = averageAnxietyData.filter { it.avgTingkatAnxiety > 0.5 }
+        anxietyOverThreshold.size >= 3 &&
+                anxietyOverThreshold.zipWithNext { a, b ->
+                    // Pastikan nilai `a.day` dan `b.day` tidak null sebelum melakukan operasi
+                    a.day?.toIntOrNull()?.let { dayA ->
+                        b.day?.toIntOrNull()?.let { dayB ->
+                            dayA + 1 == dayB
+                        } ?: false  // Jika b.day null, kembalikan false
+                    } ?: false  // Jika a.day null, kembalikan false
+                }.count { it } >= 2
+    } else {
+        false
+    }
+
+
     // Scaffold untuk menata tampilan dengan BottomNavigationBar di bawah
     Scaffold(
         bottomBar = { BottomNavigationBar(currentScreen = "Graph") }  // Menambahkan BottomNavigationBar
@@ -88,7 +112,9 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .padding(bottom = paddingValues.calculateBottomPadding())) {
+            .padding(bottom = paddingValues.calculateBottomPadding())
+            .verticalScroll(rememberScrollState()) // Menambahkan scroll pada Column
+        ) {
 
             // Tombol untuk memilih rentang waktu
             Row(horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -188,9 +214,40 @@ fun AnxietyGraphScreen(viewModel: AnxietyLogViewModel) {
             } else {
                 Text("Data not available for the selected range", style = MaterialTheme.typography.bodyLarge)
             }
+
+            // Tampilkan pesan jika perlu
+            if (showWarningMessage) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .background(
+                            color = errorLight, // Gunakan errorContainerLight jika ada
+                            shape = MaterialTheme.shapes.medium // Bentuk rounded rectangle
+                        )
+                        .padding(16.dp) // Memberikan padding di dalam box
+                ) {
+                    Text(
+                        text = "You have experienced high levels of anxiety over the past few days. You should seek professional help if you are experiencing any of the following:\n\n" +
+                                "• Difficulty in personal or professional relationships\n" +
+                                "• Persistent sleep problems\n" +
+                                "• Trouble concentrating\n" +
+                                "• Difficulty completing daily tasks\n" +
+                                "• Physical discomfort\n" +
+                                "• A sense of self-loathing or feelings of worthlessness\n" +
+                                "• Social isolation\n" +
+                                "• Suicidal thoughts",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = onErrorLight // Warna teks di dalam box
+                    )
+                }
+            }
+
         }
     }
 }
+
 
 @Composable
 fun DayRangeNavigation(rangeText: String, onPrevious: () -> Unit, onNext: () -> Unit) {
