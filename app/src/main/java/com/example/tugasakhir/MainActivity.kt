@@ -253,30 +253,27 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
             ) {
                 // Ambil 10 data terakhir dari tingkatAnxietyList
                 val dataList = tingkatAnxietyList
-                    .takeLast(10)  // Mengambil 10 data terakhir
-                    .map { it.tingkatAnxiety.toFloat() }  // Mengonversi tingkatAnxiety menjadi float
-                Log.d("GraphData", "Raw Data: $dataList")
+                    .takeLast(5)  // Ambil 10 data terakhir
+                    .map { it.tingkatAnxiety.toFloat() }  // Ambil tingkatAnxiety
+
+                val timestampList = tingkatAnxietyList
+                    .takeLast(5)  // Ambil timestamp dari 10 data terakhir
+                    .map { SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it.timestamp)) } // Format timestamp
+
+                Log.d("GraphData", "Formatted Timestamps: $timestampList")
 
                 if (dataList.isEmpty()) {
                     Log.e("GraphData", "Data List is empty. Cannot create graph.")
                     return@Column
                 }
 
-                val maxValue = dataList.maxOrNull()?.toFloat() ?: 1f
-                Log.d("GraphData", "Max Value: $maxValue")
+                val maxValue = dataList.maxOrNull() ?: 1f
+                val normalizedData = dataList.map { if (maxValue != 0f) it / maxValue else 0f }
 
-                val normalizedData = dataList.map {
-                    if (maxValue != 0f) it.toFloat() / maxValue else 0f
-                }
-
-                val finalData = normalizedData.map { it.takeIf { value -> value.isFinite() } ?: 0f }
-                val datesList = List(dataList.size) { it + 1 } // Membuat label untuk sumbu x
-                Log.d("GraphData", "Normalized Data: $finalData")
-
-                // Ensure you have BarGraph component available
+// BarGraph dengan sumbu X menggunakan timestamp
                 BarGraph(
-                    graphBarData = finalData,
-                    xAxisScaleData = datesList,
+                    graphBarData = normalizedData,
+                    xAxisScaleData = timestampList, // Gunakan timestamp sebagai label sumbu X
                     barData_ = dataList,
                     height = 300.dp,
                     roundType = BarType.TOP_CURVED,
@@ -284,6 +281,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                     barColor = secondaryContainerLight,
                     barArrangement = Arrangement.SpaceEvenly
                 )
+
             }
 
         }

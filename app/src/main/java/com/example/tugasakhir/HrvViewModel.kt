@@ -47,7 +47,8 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
                     .collect { anxietyList ->
                         //Log.d("HrvViewModel", "Tingkat Anxiety Data: $anxietyList")
                         _tingkatAnxietyList.postValue(anxietyList)
-                        getAverageAnxietyByHour() // Mulai mengambil rata-rata anxiety per jam
+                        //getAverageAnxietyByHour() // Mulai mengambil rata-rata anxiety per jam
+                        getMovingAverageAnxiety()
                     }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -90,6 +91,32 @@ class HrvViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun getMovingAverageAnxiety() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val currentTimestamp = System.currentTimeMillis()
+                val oneHourAgoTimestamp = currentTimestamp - (60 * 60 * 1000) // 1 jam sebelumnya
+
+                // Ambil rata-rata dari jendela waktu 1 jam terakhir
+                val movingAverage = dao.getMovingAverageAnxiety(oneHourAgoTimestamp, currentTimestamp)
+                Log.d("HrvViewModel", "Moving Average Anxiety (1 hour): $movingAverage")
+
+                // Update LiveData di thread utama
+                withContext(Dispatchers.Main) {
+                    movingAverage?.let { avg ->
+                        _averageAnxietyPerHour.postValue(
+                            listOf(AverageAnxietyData(avgTingkatAnxiety = avg))
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("HrvViewModel", "Error getting moving average anxiety: ${e.message}")
+            }
+        }
+    }
+
 
 
     // Optional: Fungsi untuk memulai pengambilan data sekali saja saat ViewModel diinisialisasi

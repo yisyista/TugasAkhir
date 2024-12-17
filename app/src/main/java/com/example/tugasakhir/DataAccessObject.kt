@@ -83,4 +83,16 @@ interface DataAccessObject {
         startTimestamp: Long,
         endTimestamp: Long
     ): List<AverageAnxietyData>
+
+    @Query("""
+    SELECT 
+        AVG(tingkatAnxiety) AS avgTingkatAnxiety
+    FROM tingkat_anxiety 
+    WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp
+""")
+    fun getMovingAverageAnxiety(
+        startTimestamp: Long,
+        endTimestamp: Long
+    ): Float?
+
 }
