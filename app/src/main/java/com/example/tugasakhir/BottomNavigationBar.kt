@@ -34,7 +34,7 @@ fun BottomNavigationBar(currentScreen: String) {
                 }
             },
             icon = { androidx.compose.material3.Icon(painterResource(id = R.drawable.ic_breathing), contentDescription = "Breathing") },
-            label = { Text("Breathing") }
+            label = { Text("Relaxation") }
         )
         // Item 3: AnxietyGraphActivity
         NavigationBarItem(

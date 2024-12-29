@@ -188,7 +188,12 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                         val intent = Intent(context, BluetoothConfigActivity::class.java)
                         context.startActivity(intent)
                     }) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Bluetooth Configuration")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_bluetooth),
+                            contentDescription = "Bluetooth Configuration"
+                        )
+
+                        //Icon(Icons.Filled.Settings, contentDescription = "Bluetooth Configuration")
                     }
                 }
             )
@@ -215,7 +220,8 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
 
                 Column {
                     //Text(text = "Anxiety Level: $formattedAnxiety", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
-                    Text(text = "Anxiety Level: $formattedAnxiety", fontSize = 18.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = "Anxiety Level:", fontSize = 18.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = "(In the last 1 hour)", fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
                     showProgress(latestAnxiety)
                     Text(text = "Last updated: $formattedTimestamp", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.align(Alignment.CenterHorizontally))
 
