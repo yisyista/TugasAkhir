@@ -57,13 +57,18 @@ fun AnxietyLogScreen(hrvViewModel: HrvViewModel, paddingValues: PaddingValues) {
     val reversedList = remember(tingkatAnxietyList) { tingkatAnxietyList.reversed() }
 
     // Menampilkan data menggunakan LazyColumn
-    LazyColumn(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-        .padding(bottom = paddingValues.calculateBottomPadding())) {
+    // Menampilkan data menggunakan LazyColumn
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .padding(bottom = paddingValues.calculateBottomPadding())
+    ) {
         items(reversedList) { anxiety ->
             val formattedTimestamp = formatTimestamp(anxiety.timestamp)
-            Text(text = "Anxiety Level: ${anxiety.tingkatAnxiety}\nTimestamp: $formattedTimestamp \n")
+            val anxietyText = if (anxiety.tingkatAnxiety == 1.toLong()) "Anxiety" else "No Anxiety"
+
+            Text(text = "Anxiety Level: $anxietyText\nTimestamp: $formattedTimestamp \n")
         }
     }
 }

@@ -79,7 +79,7 @@ class BreathingExercise : ComponentActivity() {
                                 .padding(paddingValues) // Padding agar tidak tertutup BottomNavigationBar
                         ) {
                             Timer(
-                                totalTime = 95L * 1000L,
+                                totalTime = 76L * 1000L,
                                 handleColor = tertiaryLight,
                                 inactiveBarColor = onSurfaceDark,
                                 activeBarColor = tertiaryContainerLight,

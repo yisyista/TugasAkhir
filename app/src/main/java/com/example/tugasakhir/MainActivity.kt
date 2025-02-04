@@ -277,7 +277,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                 val normalizedData = dataList.map { if (maxValue != 0f) it / maxValue else 0f }
 
 // BarGraph dengan sumbu X menggunakan timestamp
-                BarGraph(
+                BarGraph2(
                     graphBarData = normalizedData,
                     xAxisScaleData = timestampList, // Gunakan timestamp sebagai label sumbu X
                     barData_ = dataList,

@@ -37,7 +37,7 @@ import android.graphics.Typeface
 import com.example.tugasakhir.ui.theme.onSurfaceVariantLight
 
 @Composable
-fun <T> BarGraph(
+fun <T> BarGraph2(
     graphBarData: List<Float>,
     xAxisScaleData: List<T>,
     barData_: List<Float>,
@@ -97,38 +97,61 @@ fun <T> BarGraph(
 
             Canvas(modifier = Modifier.padding(bottom = 10.dp).fillMaxSize()) {
 
-                val yAxisScaleText = (barData.maxOrNull() ?: 0f) / 3f
+                // Tentukan posisi untuk teks sumbu Y lebih ke kiri
+                val textPaddingLeft = 40f // Sesuaikan dengan kebutuhan untuk menggeser teks ke kiri
 
-                (0..5).forEach { i ->
-                    drawContext.canvas.nativeCanvas.apply {
-                        textPaint.apply {
-                            typeface = Typeface.DEFAULT_BOLD // Membuat teks menjadi bold
-                            textSize = 14.sp.toPx()
-                            color = Color.Black.toArgb()
-                        }
+                // Hitung posisi tengah antara "No Anxiety" dan "Anxiety"
+                val middleY = size.height - yAxisScaleSpacing - (size.height / 2f)
 
-                        drawText(
-                            String.format("%.0f%%", (0 + 0.2 * i) * 100), // Konversi ke persen
-                            20f,
-                            size.height - yAxisScaleSpacing - i * size.height / 5f,
-                            textPaint
-                        )
+                // Menggambar teks "No Anxiety" dan "Anxiety" dalam dua baris
+                drawContext.canvas.nativeCanvas.apply {
+                    textPaint.apply {
+                        typeface = Typeface.DEFAULT_BOLD // Bold text
+                        textSize = 14.sp.toPx()
+                        color = Color.Black.toArgb()
                     }
 
-                    yCoordinates.add(size.height - yAxisScaleSpacing - i * size.height / 5f)
-                }
+                    // Gambar "No" di baris pertama
+                    val noWidth = textPaint.measureText("No") // Ukuran lebar teks "No"
+                    drawText(
+                        "No",
+                        textPaddingLeft - noWidth / 2, // Rata tengah
+                        size.height - yAxisScaleSpacing - 40f, // Posisi Y untuk No
+                        textPaint
+                    )
 
-                (1..5).forEach {
-                    drawLine(
-                        start = Offset(x = yAxisScaleSpacing + 40f, y = yCoordinates[it]),
-                        end = Offset(x = size.width - 35f, y = yCoordinates[it]),
-                        color = Color.Gray,
-                        strokeWidth = 5f,
-                        pathEffect = pathEffect
+                    // Gambar "Anxiety" di baris kedua
+                    val anxietyWidth = textPaint.measureText("Anxiety") // Ukuran lebar teks "Anxiety"
+                    drawText(
+                        "Anxiety",
+                        textPaddingLeft - anxietyWidth / 2, // Rata tengah
+                        size.height - yAxisScaleSpacing, // Geser sedikit ke bawah untuk baris kedua
+                        textPaint
+                    )
+
+                    // Gambar "Anxiety" pada bagian atas untuk sumbu Y
+                    val anxietyTopWidth = textPaint.measureText("Anxiety") // Ukuran lebar teks "Anxiety"
+                    drawText(
+                        "Anxiety",
+                        textPaddingLeft - anxietyTopWidth / 2, // Rata tengah
+                        size.height - yAxisScaleSpacing - size.height, // Di atas canvas
+                        textPaint
                     )
                 }
 
+                // Menggambar garis putus-putus di tengah antara "No Anxiety" dan "Anxiety"
+                drawLine(
+                    start = Offset(x = yAxisScaleSpacing + 40f, y = middleY), // Tengah antara 0 dan 1
+                    end = Offset(x = size.width, y = middleY),
+                    color = Color.Gray,
+                    strokeWidth = 5f,
+                    pathEffect = pathEffect
+                )
             }
+
+
+
+
 
         }
 
