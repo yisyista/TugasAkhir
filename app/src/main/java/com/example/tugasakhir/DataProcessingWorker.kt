@@ -24,17 +24,17 @@ class DataProcessingWorker(
             // Ambil data dari input Worker
             val nn20 = inputData.getInt("NN20", 0)
             val scrFrequency = inputData.getFloat("SCR_Frequency", 0.0f)
-            val scrAmplitudeMax = inputData.getFloat("SCR_Amplitude_Max", 0.0f)
-            val scrNumber = inputData.getInt("SCR_Number", 0)
-            val scrAmplitudeStd = inputData.getFloat("SCR_Amplitude_STD", 0.0f)
+            val scrRisetimeMax = inputData.getFloat("SCR_Risetime_Max", 0.0f)
+            val scrRisetimeMin = inputData.getFloat("SCR_Risetime_Min", 0.0f)
+            val scrRisetimeStd = inputData.getFloat("SCR_Risetime_STD", 0.0f)
 
             // Simpan data sensor ke database
             val dataSensor = DataSensorEntity(
                 nn20 = nn20,
                 scrFreq = scrFrequency,
-                scrAmplitudeMax = scrAmplitudeMax,
-                scrNumber = scrNumber,
-                scrAmplitudeStd = scrAmplitudeStd,
+                scrRisetimeMax = scrRisetimeMax,
+                scrRisetimeMin = scrRisetimeMin,
+                scrRisetimeStd = scrRisetimeStd,
                 timestamp = System.currentTimeMillis()
             )
 
@@ -50,9 +50,9 @@ class DataProcessingWorker(
                 predictor.runPrediction(
                     nn20 = nn20.toLong(),
                     scrFrequency = scrFrequency.toDouble(),
-                    scrAmplitudeMax = scrAmplitudeMax.toDouble(),
-                    scrNumber = scrNumber.toLong(),
-                    scrAmplitudeStd = scrAmplitudeStd.toDouble(),
+                    scrRisetimeMax = scrRisetimeMax.toDouble(),
+                    scrRisetimeMin = scrRisetimeMin.toDouble(),
+                    scrRisetimeStd = scrRisetimeStd.toDouble(),
                     context = context
                 )
             }.toFloat()

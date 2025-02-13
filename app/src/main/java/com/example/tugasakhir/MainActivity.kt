@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.tugasakhir.ui.theme.TugasAkhirTheme
-import com.example.tugasakhir.ui.theme.Purple500
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,8 +43,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.buttonColors
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,20 +55,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import androidx.work.OneTimeWorkRequestBuilder
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.tugasakhir.ui.theme.errorContainerDark
 import com.example.tugasakhir.ui.theme.errorLight
-import com.example.tugasakhir.ui.theme.onErrorDark
 import com.example.tugasakhir.ui.theme.onTertiaryDark
-import com.example.tugasakhir.ui.theme.primaryContainerLight
 import com.example.tugasakhir.ui.theme.secondaryContainerLight
 import com.example.tugasakhir.ui.theme.secondaryDark
-import com.example.tugasakhir.ui.theme.secondaryLight
 import com.example.tugasakhir.ui.theme.surfaceContainerLight
 import com.example.tugasakhir.ui.theme.tertiaryContainerDark
 import java.util.concurrent.TimeUnit
@@ -281,7 +270,7 @@ fun MainScreen(hrvViewModel: HrvViewModel, mainActivity: MainActivity) {
                     graphBarData = normalizedData,
                     xAxisScaleData = timestampList, // Gunakan timestamp sebagai label sumbu X
                     barData_ = dataList,
-                    height = 300.dp,
+                    height = 250.dp,
                     roundType = BarType.TOP_CURVED,
                     barWidth = 20.dp,
                     barColor = secondaryContainerLight,

@@ -22,18 +22,18 @@ class OnnxModelPredictor(private val ortEnvironment: OrtEnvironment) {
     fun runPrediction(
         nn20: Long,
         scrFrequency: Double,
-        scrAmplitudeMax: Double,
-        scrNumber: Long,
-        scrAmplitudeStd: Double,
+        scrRisetimeMax: Double,
+        scrRisetimeMin: Double,
+        scrRisetimeStd: Double,
         context: Context
     ): Long {
         // Define input tensors with correct types for each feature
         val inputTensors = mapOf(
             "NN20" to OnnxTensor.createTensor(ortEnvironment, LongBuffer.wrap(longArrayOf(nn20.toLong())), longArrayOf(1, 1)),
             "SCR_Frequency" to OnnxTensor.createTensor(ortEnvironment, DoubleBuffer.wrap(doubleArrayOf(scrFrequency.toDouble())), longArrayOf(1, 1)),
-            "SCR_Amplitude_Max" to OnnxTensor.createTensor(ortEnvironment, DoubleBuffer.wrap(doubleArrayOf(scrAmplitudeMax.toDouble())), longArrayOf(1, 1)),
-            "SCR_Number" to OnnxTensor.createTensor(ortEnvironment, LongBuffer.wrap(longArrayOf(scrNumber.toLong())), longArrayOf(1, 1)),
-            "SCR_Amplitude_STD" to OnnxTensor.createTensor(ortEnvironment, DoubleBuffer.wrap(doubleArrayOf(scrAmplitudeStd.toDouble())), longArrayOf(1, 1))
+            "SCR_Risetime_Max" to OnnxTensor.createTensor(ortEnvironment, DoubleBuffer.wrap(doubleArrayOf(scrRisetimeMax.toDouble())), longArrayOf(1, 1)),
+            "SCR_Risetime_Min" to OnnxTensor.createTensor(ortEnvironment, DoubleBuffer.wrap(doubleArrayOf(scrRisetimeMin.toDouble())), longArrayOf(1, 1)),
+            "SCR_Risetime_STD" to OnnxTensor.createTensor(ortEnvironment, DoubleBuffer.wrap(doubleArrayOf(scrRisetimeStd.toDouble())), longArrayOf(1, 1))
         )
 
         // Run the model with the prepared input tensors

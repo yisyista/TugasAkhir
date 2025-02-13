@@ -8,7 +8,7 @@ data class DataSensorEntity(
     val timestamp: Long,
     val nn20: Int,
     val scrFreq: Float,
-    val scrAmplitudeMax: Float,
-    val scrNumber: Int,
-    val scrAmplitudeStd: Float
+    val scrRisetimeMax: Float,
+    val scrRisetimeMin: Float,
+    val scrRisetimeStd: Float
 )

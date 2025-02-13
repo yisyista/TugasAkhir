@@ -530,7 +530,7 @@ class BluetoothConfigActivity : ComponentActivity() {
                             val value1 = buffer.int
                             val value2 = buffer.float
                             val value3 = buffer.float
-                            val value4 = buffer.int
+                            val value4 = buffer.float
                             val value5 = buffer.float
 
                             // Log nilai yang diterima
@@ -540,9 +540,9 @@ class BluetoothConfigActivity : ComponentActivity() {
                             val workData = Data.Builder()
                                 .putInt("NN20", value1)
                                 .putFloat("SCR_Frequency", value2)
-                                .putFloat("SCR_Amplitude_Max", value3)
-                                .putInt("SCR_Number", value4)
-                                .putFloat("SCR_Amplitude_STD", value5)
+                                .putFloat("SCR_Risetime_Max", value3)
+                                .putFloat("SCR_Risetime_Min", value4)
+                                .putFloat("SCR_Risetime_STD", value5)
                                 .build()
 
                             val workRequest = OneTimeWorkRequestBuilder<DataProcessingWorker>()
